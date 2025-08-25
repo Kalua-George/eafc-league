@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>EAFC League - Check Player Status</title>
+</head>
+<body>
+    <h1>Check Your Player Status</h1>
+    <p>Enter your Gamer Tag or Phone Number to see your registration status and stats.</p>
+
+    <form id="lookupForm">
+        <label for="identifier">Gamer Tag / Phone:</label>
+        <input type="text" id="identifier" name="identifier" required>
+        <button type="submit">Check Status</button>
+    </form>
+
+    <div id="message" style="color:red;"></div>
+
+    <div id="playerInfo" style="display:none; margin-top:20px;">
+        <h2>Player Info</h2>
+        <p><strong>Gamer Tag:</strong> <span id="gamerTag"></span></p>
+        <p><strong>Phone:</strong> <span id="phone"></span></p>
+        <p><strong>Status:</strong> <span id="status"></span></p>
+
+        <div id="stats" style="display:none; margin-top:10px;">
+            <h3>Stats</h3>
+            <p><strong>Points:</strong> <span id="points"></span></p>
+            <p><strong>Wins:</strong> <span id="wins"></span></p>
+            <p><strong>Draws:</strong> <span id="draws"></span></p>
+            <p><strong>Losses:</strong> <span id="losses"></span></p>
+            <p><strong>Goals For:</strong> <span id="gf"></span></p>
+            <p><strong>Goals Against:</strong> <span id="ga"></span></p>
+            <p><strong>Goal Difference:</strong> <span id="gd"></span></p>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('lookupForm');
+        const messageDiv = document.getElementById('message');
+        const playerInfoDiv = document.getElementById('playerInfo');
+        const statsDiv = document.getElementById('stats');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const identifier = form.identifier.value.trim();
+
+            if (!identifier) return;
+
+            try {
+                const response = await fetch('/api/players/get_player.php?identifier=' + encodeURIComponent(identifier));
+                const result = await response.json();
+
+                if (result.error) {
+                    messageDiv.style.color = 'red';
+                    messageDiv.textContent = result.error;
+                    playerInfoDiv.style.display = 'none';
+                    statsDiv.style.display = 'none';
+                } else {
+                    messageDiv.textContent = '';
+                    playerInfoDiv.style.display = 'block';
+
+                    document.getElementById('gamerTag').textContent = result.gamer_tag;
+                    document.getElementById('phone').textContent = result.phone;
+                    document.getElementById('status').textContent = result.status;
+
+                    if (result.status === 'approved') {
+                        statsDiv.style.display = 'block';
+                        document.getElementById('points').textContent = result.points;
+                        document.getElementById('wins').textContent = result.wins;
+                        document.getElementById('draws').textContent = result.draws;
+                        document.getElementById('losses').textContent = result.losses;
+                        document.getElementById('gf').textContent = result.goals_for;
+                        document.getElementById('ga').textContent = result.goals_against;
+                        document.getElementById('gd').textContent = result.goal_diff;
+                    } else {
+                        statsDiv.style.display = 'none';
+                    }
+                }
+
+            } catch (err) {
+                messageDiv.style.color = 'red';
+                messageDiv.textContent = "Network or server error";
+                playerInfoDiv.style.display = 'none';
+                statsDiv.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

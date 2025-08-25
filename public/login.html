@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>EAFC League - Admin Login</title>
+</head>
+<body>
+    <h1>Admin Login</h1>
+
+    <form id="loginForm">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required>
+        <br><br>
+
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required>
+        <br><br>
+
+        <button type="submit">Log In</button>
+    </form>
+
+    <div id="message" style="color:red;"></div>
+
+    <script>
+        const form = document.getElementById('loginForm');
+        const messageDiv = document.getElementById('message');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const data = {
+                username: form.username.value,
+                password: form.password.value
+            };
+
+            try {
+                const response = await fetch('/api/login.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    messageDiv.style.color = 'green';
+                    messageDiv.textContent = "Login successful! Redirecting...";
+                    // Redirect to admin dashboard
+                    window.location.href = '/admin/dashboard.html';
+                } else {
+                    messageDiv.style.color = 'red';
+                    messageDiv.textContent = result.error || "Login failed";
+                }
+
+            } catch (err) {
+                messageDiv.style.color = 'red';
+                messageDiv.textContent = "Network or server error";
+            }
+        });
+    </script>
+</body>
+</html>

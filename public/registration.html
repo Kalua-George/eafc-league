@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>EAFC League - Player Registration</title>
+</head>
+<body>
+    <h1>Player Registration</h1>
+    <p>Register to participate in the current EAFC League season.</p>
+
+    <form id="registrationForm">
+        <label for="gamer_tag">Gamer Tag:</label>
+        <input type="text" id="gamer_tag" name="gamer_tag" required>
+        <br><br>
+
+        <label for="phone">Phone Number:</label>
+        <input type="text" id="phone" name="phone" required>
+        <br><br>
+
+        <button type="submit">Register</button>
+    </form>
+
+    <div id="message" style="color:red;"></div>
+
+    <script>
+        const form = document.getElementById('registrationForm');
+        const messageDiv = document.getElementById('message');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const data = {
+                gamer_tag: form.gamer_tag.value.trim(),
+                phone: form.phone.value.trim()
+            };
+
+            try {
+                const response = await fetch('/api/players/add_player.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    messageDiv.style.color = 'green';
+                    messageDiv.textContent = "Registration submitted successfully! Await admin approval.";
+                    form.reset();
+                } else {
+                    messageDiv.style.color = 'red';
+                    messageDiv.textContent = result.error || "Registration failed";
+                }
+
+            } catch (err) {
+                messageDiv.style.color = 'red';
+                messageDiv.textContent = "Network or server error";
+            }
+        });
+    </script>
+</body>
+</html>

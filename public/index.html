@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>EAFC League - Home</title>
+</head>
+<body>
+    <header>
+        <h1>EAFC League</h1>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="login.html">Admin Login</a>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Public Action Links -->
+        <section id="public-links">
+            <h2>Quick Links</h2>
+            <ul>
+                <li><a href="registration.html">Register as a Player</a></li>
+                <li><a href="lookup.html">Check Your Player Status</a></li>
+                
+            </ul>
+        </section>
+
+        <!-- Current Season Info -->
+        <section id="current-season">
+            <h2>Current Season: <span id="season-name">Loading...</span></h2>
+            <p>Status: <span id="season-status">Loading...</span></p>
+            <button id="register-btn">Register</button>
+        </section>
+
+        <!-- Season Standings -->
+        <section id="standings">
+            <h3>Season Standings</h3>
+            <table id="standings-table" border="1" cellspacing="0" cellpadding="5">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Gamer Tag</th>
+                        <th>Points</th>
+                        <th>Wins</th>
+                        <th>Draws</th>
+                        <th>Losses</th>
+                        <th>Goals For</th>
+                        <th>Goals Against</th>
+                        <th>Goal Diff</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Filled dynamically -->
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Top Scorers & Clean Sheets -->
+        <section id="player-stats">
+            <h3>Top Goal Scorers</h3>
+            <ul id="top-scorers">
+                <!-- Filled dynamically -->
+            </ul>
+
+            <h3>Most Clean Sheets</h3>
+            <ul id="clean-sheets">
+                <!-- Filled dynamically -->
+            </ul>
+        </section>
+
+        <!-- About League -->
+        <section id="about">
+            <h2>About the EAFC League</h2>
+            <p>Here you can show general league information, upcoming season, and announcements.</p>
+        </section>
+    </main>
+
+    <footer>
+        <p>© EAFC League</p>
+    </footer>
+</body>
+</html>

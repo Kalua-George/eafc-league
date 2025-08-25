@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>EAFC League - Admin Dashboard</title>
+</head>
+<body>
+    <h1>Admin Dashboard</h1>
+    <p>Welcome, Admin!</p>
+
+    <!-- Navigation / Toggle Buttons -->
+    <div>
+        <button data-section="players">Players</button>
+        <button data-section="seasons">Seasons</button>
+        <button data-section="matches">Matches</button>
+        <button data-section="logs">System Logs</button>
+        <button data-section="reports">Reports</button>
+        <button id="logoutBtn">Logout</button>
+    </div>
+
+
+    <!-- Sections -->
+    <div id="players" class="section" style="display:none;">
+        <h2>Players</h2>
+        <!-- Admin actions: add, edit, approve/reject -->
+        <div id="playersContent">Loading players...</div>
+    </div>
+
+    <div id="seasons" class="section" style="display:none;">
+        <h2>Seasons</h2>
+        <!-- Admin actions: add season, view seasons -->
+        <div id="seasonsContent">Loading seasons...</div>
+    </div>
+
+    <div id="matches" class="section" style="display:none;">
+        <h2>Matches</h2>
+        <!-- Admin actions: create fixtures, record results, reschedule -->
+        <div id="matchesContent">Loading matches...</div>
+    </div>
+
+    <div id="logs" class="section" style="display:none;">
+        <h2>System Logs</h2>
+        <div id="logsContent">Loading logs...</div>
+    </div>
+
+    <div id="reports" class="section" style="display:none;">
+        <h2>Reports</h2>
+        <div id="reportsContent">Loading reports...</div>
+    </div>
+
+    <script>
+        const buttons = document.querySelectorAll('button[data-section]');
+        const sections = document.querySelectorAll('.section');
+
+        buttons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const sectionId = btn.getAttribute('data-section');
+                sections.forEach(sec => sec.style.display = 'none'); // Hide all
+                document.getElementById(sectionId).style.display = 'block'; // Show selected
+            });
+        });
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            try {
+                await fetch('../api/logout.php', { method: 'POST' });
+                window.location.href = '/login.html';
+            } catch {
+                alert('Logout failed');
+            }
+        });
+
+        // You can add JS to load content dynamically for each section here
+    </script>
+    <script src="JS/players.js"></script>
+    <script src="JS/seasons.js"></script>
+
+</body>
+</html>
