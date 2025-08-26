@@ -1,7 +1,7 @@
 <?php
 session_start();
 require __DIR__ . "/../connect.php";
-require __DIR__ . "/../systemlogs/logger.php"; // log_admin_action()
+require __DIR__ . "/../systemlogs/logger.php"; // log_action()
 
 $admin_id = $_SESSION['admin_id'] ?? null;
 $player_id_session = $_SESSION['player_id'] ?? null;
@@ -10,14 +10,16 @@ $data = json_decode(file_get_contents("php://input"), true);
 $gamer_tag = trim($data['gamer_tag'] ?? '');
 $phone = trim($data['phone'] ?? ''); // new phone field
 
+$logTargetTable = 'players'; // always pass a valid target_table
+
 if (!$gamer_tag) {
-    log_admin_action($pdo, $admin_id ?? $player_id_session, 'add_player', 'player', null, 'failed', 'Missing gamer_tag');
+    log_action($pdo, $admin_id ?? $player_id_session, null, 'add_player', $logTargetTable, 'Missing gamer_tag', 'failed');
     echo json_encode(["error" => "Gamer tag is required"]);
     exit();
 }
 
 if (!$phone) {
-    log_admin_action($pdo, $admin_id ?? $player_id_session, 'add_player', 'player', null, 'failed', 'Missing phone number');
+    log_action($pdo, $admin_id ?? $player_id_session, null, 'add_player', $logTargetTable, 'Missing phone number', 'failed');
     echo json_encode(["error" => "Phone number is required"]);
     exit();
 }
@@ -27,7 +29,7 @@ try {
     $check = $pdo->prepare("SELECT id FROM players WHERE gamer_tag = ?");
     $check->execute([$gamer_tag]);
     if ($check->fetch()) {
-        log_admin_action($pdo, $admin_id ?? $player_id_session, 'add_player', 'player', null, 'failed', 'Duplicate gamer_tag');
+        log_action($pdo, $admin_id ?? $player_id_session, null, 'add_player', $logTargetTable, 'Duplicate gamer_tag', 'failed');
         echo json_encode(["error" => "Gamer tag already exists"]);
         exit();
     }
@@ -45,14 +47,22 @@ try {
         $_SESSION['player_id'] = $player_id;
     }
 
-    log_admin_action(
+    // ✅ Use sprintf for readable log message
+    $details = sprintf(
+        "Added player: gamer_tag='%s', phone='%s', status='%s'",
+        $gamer_tag,
+        $phone,
+        $status
+    );
+
+    log_action(
         $pdo,
         $admin_id ?? $player_id,
-        'add_player',
-        'player',
         $player_id,
-        'success',
-        json_encode(['gamer_tag'=>$gamer_tag,'phone'=>$phone,'status'=>$status])
+        'add_player',
+        $logTargetTable,
+        $details,
+        'success'
     );
 
     echo json_encode([
@@ -65,6 +75,6 @@ try {
     ]);
 
 } catch (Exception $e) {
-    log_admin_action($pdo, $admin_id ?? $player_id_session, 'add_player', 'player', null, 'failed', $e->getMessage());
+    log_action($pdo, $admin_id ?? $player_id_session, null, 'add_player', $logTargetTable, $e->getMessage(), 'failed');
     echo json_encode(["error" => "Failed to add player"]);
 }

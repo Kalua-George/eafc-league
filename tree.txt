@@ -1,0 +1,39 @@
+.
+├── api
+│   ├── admin
+│   │   ├── login.php
+│   │   └── logout.php
+│   ├── connect.php
+│   ├── matches
+│   │   ├── create_fixture.php
+│   │   ├── record_results.php
+│   │   ├── reschedule.php
+│   │   └── standings.php
+│   ├── players
+│   │   ├── add_player.php
+│   │   ├── approve_reject_player.php
+│   │   ├── editplayers.php
+│   │   ├── get_player.php
+│   │   └── get_players.php
+│   ├── reports
+│   │   └── player_season+report.php
+│   ├── seasons
+│   │   ├── add_season.php
+│   │   └── get_seasons.php
+│   └── systemlogs
+│       ├── getlogs.php
+│       └── logger.php
+├── public
+│   ├── dashboard.html
+│   ├── index.html
+│   ├── JS
+│   │   ├── logs.js
+│   │   ├── matches.js
+│   │   ├── players.js
+│   │   └── seasons.js
+│   ├── login.html
+│   ├── lookup.html
+│   └── registration.html
+└── tree.txt
+
+10 directories, 27 files

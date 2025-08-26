@@ -34,7 +34,7 @@
             };
 
             try {
-                const response = await fetch('/api/login.php', {
+                const response = await fetch('../../eafc-league/api/admin/login.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
@@ -46,7 +46,7 @@
                     messageDiv.style.color = 'green';
                     messageDiv.textContent = "Login successful! Redirecting...";
                     // Redirect to admin dashboard
-                    window.location.href = '/admin/dashboard.html';
+                    window.location.href = '/eafc-league/public/dashboard.html';
                 } else {
                     messageDiv.style.color = 'red';
                     messageDiv.textContent = result.error || "Login failed";

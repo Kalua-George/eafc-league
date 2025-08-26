@@ -4,7 +4,7 @@ async function loadCurrentSeason() {
     const registerBtn = document.getElementById('register-btn');
 
     try {
-        const res = await fetch('/api/seasons/get_seasons.php');
+        const res = await fetch('../api/seasons/get_seasons.php');
         const seasons = await res.json();
         if(seasons.error || seasons.length === 0) {
             seasonNameEl.textContent = 'N/A';
@@ -41,6 +41,10 @@ async function loadCurrentSeason() {
         registerBtn.style.display = 'none';
         console.error(err);
     }
+}
+
+async  function loadSeasons(){
+
 }
 
 // Run this when the page loads

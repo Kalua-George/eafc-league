@@ -18,23 +18,22 @@ try {
     $admin = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$admin) {
-        log_action($pdo, null, null, 'login', 'admins', null, 'failed', "Invalid username: $username");
+        log_action($pdo, null, null, 'login', 'admins', "Invalid username: $username", 'failed');
         echo json_encode(["error" => "Invalid credentials"]);
         exit();
     }
 
-    // Verify SHA-256 hashed password
-    if (hash('sha256', $password) !== $admin['password']) {
-        log_action($pdo, $admin['id'], null, 'login', 'admins', null, 'failed', "Incorrect password");
+    if (!password_verify($password, $admin['password'])) {
+        log_action($pdo, $admin['id'], null, 'login', 'admins', "Incorrect password", 'failed');
         echo json_encode(["error" => "Invalid credentials"]);
         exit();
     }
 
-    // Successful login
     $_SESSION['admin_id'] = $admin['id'];
-    log_action($pdo, $admin['id'], null, 'login', 'admins', null, 'success', "Admin logged in");
+    log_action($pdo, $admin['id'], null, 'login', 'admins', "Admin logged in", 'success');
+
     echo json_encode(["success" => true, "message" => "Logged in successfully"]);
 
 } catch (Exception $e) {
-    echo json_encode(["error" => "Login failed"]);
+    echo json_encode(["error" => "Login failed", "details" => $e->getMessage()]);
 }

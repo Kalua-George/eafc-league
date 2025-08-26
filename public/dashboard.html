@@ -1,9 +1,50 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>EAFC League - Admin Dashboard</title>
+    <style>
+        /* Basic modal styling */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background: #fff;
+            padding: 20px;
+            margin: 100px auto;
+            width: 300px;
+            border-radius: 8px;
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            cursor: pointer;
+            font-size: 20px;
+        }
+
+        .modal,label, input {
+            display: block;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        button {
+            margin-top: 10px;
+        }
+    </style>
 </head>
+
 <body>
     <h1>Admin Dashboard</h1>
     <p>Welcome, Admin!</p>
@@ -18,23 +59,34 @@
         <button id="logoutBtn">Logout</button>
     </div>
 
-
     <!-- Sections -->
     <div id="players" class="section" style="display:none;">
         <h2>Players</h2>
-        <!-- Admin actions: add, edit, approve/reject -->
+
+        <!-- Add new player form -->
+        <div id="addPlayerSection">
+            <h3>Add New Player</h3>
+            <form id="addPlayerForm">
+                <label for="gamer_tag">Gamer Tag:</label>
+                <input type="text" id="gamer_tag" required>
+                <label for="phone">Phone:</label>
+                <input type="text" id="phone" required>
+                <button type="submit">Add Player</button>
+            </form>
+            <div id="addPlayerMessage" style="color:green"></div>
+        </div>
+
+        <!-- Player list table -->
         <div id="playersContent">Loading players...</div>
     </div>
 
     <div id="seasons" class="section" style="display:none;">
         <h2>Seasons</h2>
-        <!-- Admin actions: add season, view seasons -->
         <div id="seasonsContent">Loading seasons...</div>
     </div>
 
     <div id="matches" class="section" style="display:none;">
         <h2>Matches</h2>
-        <!-- Admin actions: create fixtures, record results, reschedule -->
         <div id="matchesContent">Loading matches...</div>
     </div>
 
@@ -46,6 +98,22 @@
     <div id="reports" class="section" style="display:none;">
         <h2>Reports</h2>
         <div id="reportsContent">Loading reports...</div>
+    </div>
+
+    <!-- Edit Player Modal -->
+    <div id="editPlayerModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeEditPlayerModal()">&times;</span>
+            <h3>Edit Player</h3>
+            <form id="editPlayerForm">
+                <input type="hidden" id="editPlayerId" />
+                <label for="editGamerTag">Gamer Tag:</label>
+                <input type="text" id="editGamerTag" required />
+                <label for="editPhone">Phone:</label>
+                <input type="text" id="editPhone" required />
+                <button type="submit">Save Changes</button>
+            </form>
+        </div>
     </div>
 
     <script>
@@ -63,17 +131,18 @@
         // Logout
         document.getElementById('logoutBtn').addEventListener('click', async () => {
             try {
-                await fetch('../api/logout.php', { method: 'POST' });
+                await fetch('/../api/logout.php', { method: 'POST' });
                 window.location.href = '/login.html';
             } catch {
                 alert('Logout failed');
             }
         });
-
-        // You can add JS to load content dynamically for each section here
     </script>
+
     <script src="JS/players.js"></script>
     <script src="JS/seasons.js"></script>
-
+    <script src="JS/matches.js"></script>
+    <script src="JS/logs.js"></script>
 </body>
+
 </html>
