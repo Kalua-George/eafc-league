@@ -2,7 +2,7 @@
 session_start();
 header("Content-Type: application/json");
 require __DIR__ . "/../connect.php";
-require __DIR__ . "/../systemlogs/logger.php"; // log_admin_action()
+require __DIR__ . "/../systemlogs/logger.php"; // log_action()
 
 $admin_id = $_SESSION['admin_id'] ?? null;
 
@@ -18,7 +18,7 @@ $action = strtolower(trim($data['action'] ?? ''));
 
 if (!$player_id || !in_array($action, ['approve','reject'])) {
     echo json_encode(["error" => "Invalid input"]);
-    log_admin_action($pdo, $admin_id, 'update_player_status', 'player', $player_id, 'failed', 'Invalid input');
+    log_action($pdo, $admin_id, 'update_player_status', 'player', $player_id, 'failed', 'Invalid input');
     exit();
 }
 
@@ -31,14 +31,14 @@ try {
     $player = $stmtCheck->fetch(PDO::FETCH_ASSOC);
 
     if (!$player) {
-        log_admin_action($pdo, $admin_id, 'update_player_status', 'player', $player_id, 'failed', 'Player not found');
+        log__action($pdo, $admin_id, 'update_player_status', 'player', $player_id, 'failed', 'Player not found');
         echo json_encode(["error" => "Player not found"]);
         exit();
     }
 
     // Prevent duplicate action
     if ($player['status'] === $status) {
-        log_admin_action($pdo, $admin_id, 'update_player_status', 'player', $player_id, 'failed', "Player already $status");
+        log_action($pdo, $admin_id, 'update_player_status', 'player', $player_id, 'failed', "Player already $status");
         echo json_encode(["error" => "Player already $status"]);
         exit();
     }
@@ -47,7 +47,7 @@ try {
     $stmt = $pdo->prepare("UPDATE players SET status = ? WHERE id = ?");
     $stmt->execute([$status, $player_id]);
 
-    log_admin_action(
+    log_action(
         $pdo,
         $admin_id,
         'update_player_status',
@@ -65,6 +65,6 @@ try {
     ]);
 
 } catch (Exception $e) {
-    log_admin_action($pdo, $admin_id, 'update_player_status', 'player', $player_id, 'failed', $e->getMessage());
+    log_action($pdo, $admin_id, 'update_player_status', 'player', $player_id, 'failed', $e->getMessage());
     echo json_encode(["error" => "Failed to update player status"]);
 }

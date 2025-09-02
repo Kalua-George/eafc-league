@@ -1,3 +1,10 @@
+
+// ============================
+// Load players when section is opened
+// ============================
+document.querySelector('button[data-section="players"]').addEventListener('click', loadPlayers);
+
+
 // ============================
 // Load players table
 // ============================
@@ -190,8 +197,3 @@ document.getElementById('editPlayerForm').addEventListener('submit', async (e) =
         alert('Failed to update player');
     }
 });
-
-// ============================
-// Load players when section is opened
-// ============================
-document.querySelector('button[data-section="players"]').addEventListener('click', loadPlayers);

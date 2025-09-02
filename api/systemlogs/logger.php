@@ -13,12 +13,13 @@ require __DIR__ . "/../connect.php";
  * @param string $status Status: success or failed
  */
 function log_action($pdo, $admin_id, $target_id, $action, $target_table, $details = null, $status = 'success') {
-    if (!$admin_id) return false; // optional safety check
+    if (!$admin_id) return false;
 
     $stmt = $pdo->prepare("
         INSERT INTO system_logs 
         (admin_id, action, target_table, target_id, status, details, created_at)
         VALUES (?, ?, ?, ?, ?, ?, NOW())
     ");
+    // Corrected execute statement to match the column and function parameter order
     $stmt->execute([$admin_id, $action, $target_table, $target_id, $status, $details]);
 }

@@ -13,14 +13,14 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0, 0, 0, 0.5);
         }
 
         .modal-content {
             background: #fff;
             padding: 20px;
             margin: 100px auto;
-            width: 300px;
+            width: 400px;
             border-radius: 8px;
             position: relative;
         }
@@ -33,7 +33,9 @@
             font-size: 20px;
         }
 
-        .modal,label, input {
+        .modal,
+        label,
+        input {
             display: block;
             width: 100%;
             margin-bottom: 10px;
@@ -60,6 +62,7 @@
     </div>
 
     <!-- Sections -->
+    <!-- Players Section -->
     <div id="players" class="section" style="display:none;">
         <h2>Players</h2>
 
@@ -80,21 +83,44 @@
         <div id="playersContent">Loading players...</div>
     </div>
 
+    <!-- Seasons Section -->
     <div id="seasons" class="section" style="display:none;">
         <h2>Seasons</h2>
+
+        <!-- Add new season form -->
+        <div id="addSeasonSection">
+            <h3>Add New Season</h3>
+            <form id="addSeasonForm">
+                <label for="seasonName">Season Name:</label>
+                <input type="text" id="seasonName" required>
+                <label for="seasonYear">Year:</label>
+                <input type="number" id="seasonYear" required>
+                <label>start date:</label>
+                <input type="date" id="seasonStart" required>
+                <label>End date:</label>
+                <input type="date" id="seasonEnd" required>
+                <button type="submit">Add Season</button>
+            </form>
+            <div id="addSeasonMessage" style="color:green"></div>
+        </div>
+
+        <!-- Seasons list table -->
         <div id="seasonsContent">Loading seasons...</div>
     </div>
 
+    <!-- Matches Section -->
     <div id="matches" class="section" style="display:none;">
         <h2>Matches</h2>
-        <div id="matchesContent">Loading matches...</div>
+        <div id="matchesContent"></div>
     </div>
 
+    <!-- Logs Section -->
     <div id="logs" class="section" style="display:none;">
         <h2>System Logs</h2>
         <div id="logsContent">Loading logs...</div>
     </div>
 
+    <!-- Reports Section -->
     <div id="reports" class="section" style="display:none;">
         <h2>Reports</h2>
         <div id="reportsContent">Loading reports...</div>
@@ -116,6 +142,41 @@
         </div>
     </div>
 
+    <!-- Edit Season Modal (Current Season Only) -->
+    <div id="editSeasonModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeEditSeasonModal()">&times;</span>
+            <h3>Edit Current Season</h3>
+            <form id="editSeasonForm">
+                <input type="hidden" id="editSeasonId" />
+
+                <label for="editSeasonName">Season Name:</label>
+                <input type="text" id="editSeasonName" disabled />
+
+                <label for="editSeasonYear">Year:</label>
+                <input type="number" id="editSeasonYear" disabled />
+
+                <label for="editSeasonStart">Start Date:</label>
+                <input type="date" id="editSeasonStart" disabled />
+
+                <label for="editSeasonEnd">End Date:</label>
+                <input type="date" id="editSeasonEnd" required />
+
+                <button type="submit">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- View Season Modal (Past Seasons Rankings) -->
+    <div id="viewSeasonModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeViewSeasonModal()">&times;</span>
+            <h3>Season Rankings</h3>
+            <div id="seasonRankingsContent">Loading rankings...</div>
+        </div>
+    </div>
+
+    <!-- Navigation Script -->
     <script>
         const buttons = document.querySelectorAll('button[data-section]');
         const sections = document.querySelectorAll('.section');
@@ -139,6 +200,7 @@
         });
     </script>
 
+    <!-- JS -->
     <script src="JS/players.js"></script>
     <script src="JS/seasons.js"></script>
     <script src="JS/matches.js"></script>

@@ -1,13 +1,15 @@
 <?php
 session_start();
 require __DIR__ . "/../connect.php";
-require __DIR__ . "/../systemlogs/logger.php"; // log_admin_action()
+require __DIR__ . "/../systemlogs/logger.php";
+
+header('Content-Type: application/json');
 
 $admin_id = $_SESSION['admin_id'] ?? null;
 
 if (!$admin_id) {
     http_response_code(401);
-    echo json_encode(["error" => "Unauthorized"]);
+    echo json_encode(["success" => false, "error" => "Unauthorized"]);
     exit();
 }
 
@@ -17,8 +19,9 @@ $start_date = $data['start_date'] ?? null;
 $end_date = $data['end_date'] ?? null;
 
 if (!$name || !$start_date || !$end_date) {
-    log_admin_action($pdo, $admin_id, 'add_season', 'season', null, 'failed', 'Missing required fields');
-    echo json_encode(["error" => "All fields are required"]);
+    // Log a simple string message
+    log_action($pdo, $admin_id, null, 'add_season', 'seasons', 'Missing required fields', 'failed');
+    echo json_encode(["success" => false, "error" => "All fields are required"]);
     exit();
 }
 
@@ -27,11 +30,21 @@ try {
     $stmt->execute([$name, $start_date, $end_date]);
     $season_id = $pdo->lastInsertId();
 
-    log_admin_action($pdo, $admin_id, 'add_season', 'season', $season_id, 'success', json_encode(['name'=>$name,'start_date'=>$start_date,'end_date'=>$end_date]));
+    // Log a simple, descriptive string message
+    $log_details = "Added new season: '{$name}' with ID '{$season_id}'";
+    log_action($pdo, $admin_id, $season_id, 'add_season', 'seasons', $log_details, 'success');
 
-    echo json_encode(["success" => true, "message" => "Season added successfully", "season_id" => $season_id]);
+    echo json_encode([
+        "success" => true,
+        "message" => "Season added successfully",
+        "season_id" => $season_id
+    ]);
 
 } catch (Exception $e) {
-    log_admin_action($pdo, $admin_id, 'add_season', 'season', null, 'failed', $e->getMessage());
-    echo json_encode(["error" => "Failed to add season"]);
+    // Log the error message as a simple string
+    log_action($pdo, $admin_id, null, 'add_season', 'seasons', $e->getMessage(), 'failed');
+    echo json_encode([
+        "success" => false,
+        "error" => "Failed to add season: " . $e->getMessage()
+    ]);
 }

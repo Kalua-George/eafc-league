@@ -2,7 +2,7 @@
 session_start();
 header("Content-Type: application/json");
 require __DIR__ . "/../connect.php";
-require __DIR__ . "/../systemlogs/logger.php"; // log_admin_action()
+require __DIR__ . "/../systemlogs/logger.php"; // log_action()
 
 // Identify the user (admin or player)
 $admin_id = $_SESSION['admin_id'] ?? null;
@@ -11,7 +11,7 @@ $player_id = $_SESSION['player_id'] ?? null;
 $search = trim($_GET['q'] ?? '');
 
 if (!$search) {
-    log_admin_action($pdo, $admin_id ?? $player_id, 'get_player', 'player', null, 'failed', 'Missing search query');
+    log_action($pdo, $admin_id ?? $player_id, 'get_player', 'player', null, 'failed', 'Missing search query');
     echo json_encode(["error" => "Missing search query"]);
     exit();
 }
@@ -27,14 +27,14 @@ try {
     $player = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($player) {
-        log_admin_action($pdo, $admin_id ?? $player_id, 'get_player', 'player', $player['id'], 'success', 'Viewed player');
+        log_action($pdo, $admin_id ?? $player_id, 'get_player', 'player', $player['id'], 'success', 'Viewed player');
         echo json_encode($player);
     } else {
-        log_admin_action($pdo, $admin_id ?? $player_id, 'get_player', 'player', null, 'failed', 'Player not found');
+        log_action($pdo, $admin_id ?? $player_id, 'get_player', 'player', null, 'failed', 'Player not found');
         echo json_encode(["error" => "Player not found"]);
     }
 
 } catch (Exception $e) {
-    log_admin_action($pdo, $admin_id ?? $player_id, 'get_player', 'player', null, 'failed', $e->getMessage());
+    log_action($pdo, $admin_id ?? $player_id, 'get_player', 'player', null, 'failed', $e->getMessage());
     echo json_encode(["error" => "Failed to fetch player"]);
 }
