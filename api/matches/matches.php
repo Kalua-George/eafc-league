@@ -1,7 +1,7 @@
 <?php
 session_start();
 require __DIR__ . "/../connect.php";
-require __DIR__ . "/../systemlogs/logger.php"; // the log_admin_action() function
+require __DIR__ . "/../systemlogs/logger.php"; // the log_action() function
 
 if (!isset($_SESSION['admin_id'])) {
     http_response_code(401);
@@ -15,6 +15,11 @@ $admin_id = $_SESSION['admin_id'];
 $requestMethod = $_SERVER['REQUEST_METHOD'];
 $action = $_GET['action'] ?? '';
 
+// Fix: Declare variables at the top to ensure they are always in scope for the catch block
+$match_id = null;
+$result_str = null;
+$new_date = null;
+
 try {
     if ($requestMethod === 'GET') {
         // Handle GET request to fetch all matches
@@ -24,8 +29,8 @@ try {
                 m.scheduled_date, 
                 m.home_goals, 
                 m.away_goals,
-                p1.name AS home_team, 
-                p2.name AS away_team
+                p1.gamer_tag AS home_team, 
+                p2.gamer_tag AS away_team
             FROM matches m
             JOIN players p1 ON m.home_player_id = p1.id
             JOIN players p2 ON m.away_player_id = p2.id
@@ -66,7 +71,8 @@ try {
                 $stmt = $pdo->prepare("UPDATE matches SET home_goals = ?, away_goals = ?, status = 'completed', played_at = NOW() WHERE id = ?");
                 $stmt->execute([$home_goals, $away_goals, $match_id]);
 
-                log_admin_action($pdo, $admin_id, 'record_result', 'match', $match_id, 'success', "Recorded result for match {$match_id}: {$result_str}");
+                // Corrected parameter order for log_action
+                log_action($pdo, $admin_id, $match_id, 'record_result', 'match', "Recorded result for match {$match_id}: {$result_str}", 'success');
                 echo json_encode(["success" => true, "message" => "Result recorded successfully."]);
                 break;
 
@@ -82,14 +88,15 @@ try {
                 $stmt = $pdo->prepare("UPDATE matches SET scheduled_date = ?, status = 'postponed' WHERE id = ?");
                 $stmt->execute([$new_date, $match_id]);
 
-                log_admin_action($pdo, $admin_id, 'reschedule_match', 'match', $match_id, 'success', "Rescheduled match {$match_id} to {$new_date}");
+                // Corrected parameter order for log_action
+                log_action($pdo, $admin_id, $match_id, 'reschedule_match', 'match', "Rescheduled match {$match_id} to {$new_date}", 'success');
                 echo json_encode(["success" => true, "message" => "Match rescheduled successfully."]);
                 break;
 
             default:
                 http_response_code(400);
                 echo json_encode(["error" => "Invalid action."]);
-                break;
+                exit(); // This is the crucial fix!
         }
     } else {
         http_response_code(405);
@@ -97,6 +104,8 @@ try {
     }
 } catch (Exception $e) {
     http_response_code(500);
-    log_admin_action($pdo, $admin_id, $action, 'match', $match_id ?? 'N/A', 'failed', $e->getMessage());
+    // Corrected parameter order for log_action in the catch block
+    $targetIdToLog = is_numeric($match_id) ? $match_id : null;
+    log_action($pdo, $admin_id, $targetIdToLog, $action, 'match', $e->getMessage(), 'failed');
     echo json_encode(["error" => $e->getMessage()]);
 }

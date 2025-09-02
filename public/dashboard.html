@@ -192,8 +192,8 @@
         // Logout
         document.getElementById('logoutBtn').addEventListener('click', async () => {
             try {
-                await fetch('/../api/logout.php', { method: 'POST' });
-                window.location.href = '/login.html';
+                await fetch('../api/logout.php', { method: 'POST' });
+                window.location.href = 'login.html';
             } catch {
                 alert('Logout failed');
             }

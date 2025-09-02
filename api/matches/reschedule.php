@@ -1,7 +1,7 @@
 <?php
 session_start();
 require __DIR__ . "/../connect.php";
-require __DIR__ . "/../systemlogs/logger.php"; // log_admin_action()
+require __DIR__ . "/../systemlogs/logger.php"; // log_action()
 
 if (!isset($_SESSION['admin_id'])) {
     http_response_code(401);
@@ -11,13 +11,12 @@ if (!isset($_SESSION['admin_id'])) {
 
 $admin_id = $_SESSION['admin_id'];
 
-// Get input: match_id, new_datetime
-$data = json_decode(file_get_contents("php://input"), true);
-$match_id = $data['match_id'] ?? null;
-$new_datetime = $data['new_datetime'] ?? null;
+// Get input from POST request
+$match_id = $_POST['match_id'] ?? null;
+$new_date = $_POST['new_date'] ?? null;
 
-if (!$match_id || !$new_datetime) {
-    log_admin_action($pdo, $admin_id, 'reschedule', 'match', $match_id, 'failed', 'Missing input');
+if (!$match_id || !$new_date) {
+    log_action($pdo, $admin_id, null, 'reschedule', 'match', 'Missing input', 'failed');
     echo json_encode(["error" => "Missing input"]);
     exit();
 }
@@ -36,15 +35,15 @@ try {
         throw new Exception("Cannot reschedule a completed match");
     }
 
-    // Update match date/time
-    $stmt = $pdo->prepare("UPDATE matches SET played_at = ? WHERE id = ?");
-    $stmt->execute([$new_datetime, $match_id]);
+    // Update match date
+    $stmt = $pdo->prepare("UPDATE matches SET scheduled_date = ? WHERE id = ?");
+    $stmt->execute([$new_date, $match_id]);
 
-    log_admin_action($pdo, $admin_id, 'reschedule', 'match', $match_id, 'success', "New date/time: $new_datetime");
+    log_action($pdo, $admin_id, $match_id, 'reschedule', 'match', "New date: $new_date", 'success');
 
     echo json_encode(["success" => true, "message" => "Match rescheduled successfully"]);
 
 } catch (Exception $e) {
-    log_admin_action($pdo, $admin_id, 'reschedule', 'match', $match_id, 'failed', $e->getMessage());
+    log_action($pdo, $admin_id, $match_id, 'reschedule', 'match', $e->getMessage(), 'failed');
     echo json_encode(["error" => $e->getMessage()]);
 }

@@ -11,21 +11,20 @@ if (!isset($_SESSION['admin_id'])) {
 
 $admin_id = $_SESSION['admin_id'];
 
-// Get input: match_id, home_goals, away_goals
-$data = json_decode(file_get_contents("php://input"), true);
-$match_id = $data['match_id'] ?? null;
-$home_goals = $data['home_goals'] ?? null;
-$away_goals = $data['away_goals'] ?? null;
+// Get input from POST request
+$match_id = $_POST['match_id'] ?? null;
+$home_goals = $_POST['home_goals'] ?? null;
+$away_goals = $_POST['away_goals'] ?? null;
 
 if (!$match_id || $home_goals === null || $away_goals === null) {
-    log_admin_action($pdo, $admin_id, 'record_result', 'match', $match_id, 'failed', 'Missing input');
+    log_action($pdo, $admin_id, null, 'record_result', 'match', 'Missing input', 'failed');
     echo json_encode(["error" => "Missing input"]);
     exit();
 }
 
 try {
     // Check if match exists and not already completed
-    $stmt = $pdo->prepare("SELECT home_goals, away_goals, status FROM matches WHERE id = ?");
+    $stmt = $pdo->prepare("SELECT status FROM matches WHERE id = ?");
     $stmt->execute([$match_id]);
     $match = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -41,11 +40,11 @@ try {
     $stmt = $pdo->prepare("UPDATE matches SET home_goals = ?, away_goals = ?, status = 'completed', played_at = NOW() WHERE id = ?");
     $stmt->execute([$home_goals, $away_goals, $match_id]);
 
-    log_admin_action($pdo, $admin_id, 'record_result', 'match', $match_id, 'success', json_encode(['home_goals'=>$home_goals,'away_goals'=>$away_goals]));
+    log_action($pdo, $admin_id, $match_id, 'record_result', 'match', json_encode(['home_goals'=>$home_goals,'away_goals'=>$away_goals]), 'success');
 
     echo json_encode(["success" => true, "message" => "Match results recorded successfully"]);
 
 } catch (Exception $e) {
-    log_admin_action($pdo, $admin_id, 'record_result', 'match', $match_id, 'failed', $e->getMessage());
+    log_action($pdo, $admin_id, $match_id, 'record_result', 'match', $e->getMessage(), 'failed');
     echo json_encode(["error" => $e->getMessage()]);
 }

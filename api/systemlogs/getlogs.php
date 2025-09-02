@@ -1,7 +1,7 @@
 <?php
 session_start();
 require __DIR__ . "/../connect.php";
-require __DIR__ . "/../systemlogs/logger.php"; // log_admin_action()
+require __DIR__ . "/../systemlogs/logger.php"; // log_action()
 
 $admin_id = $_SESSION['admin_id'] ?? null;
 
@@ -29,7 +29,8 @@ try {
 
     // Log success if admin
     if ($admin_id) {
-        log_admin_action($pdo, $admin_id, 'view_logs', 'system_logs', null, 'success', 'Viewed system logs');
+        // Corrected parameter order
+        log_action($pdo, $admin_id, null, 'view_logs', 'system_logs', 'Viewed system logs', 'success');
     }
 
     echo json_encode([
@@ -42,7 +43,9 @@ try {
 
 } catch (Exception $e) {
     if ($admin_id) {
-        log_admin_action($pdo, $admin_id, 'view_logs', 'system_logs', null, 'failed', $e->getMessage());
+        // Corrected parameter order
+        log_action($pdo, $admin_id, null, 'view_logs', 'system_logs', $e->getMessage(), 'failed');
     }
+    http_response_code(500);
     echo json_encode(["error" => "Failed to fetch logs"]);
 }

@@ -10,57 +10,58 @@ async function loadMatches() {
         // This helper function creates and returns the matches HTML.
         function generateMatchesHtml(data) {
             let html = `
-                <h3>Create Fixture</h3>
-                <form id="createFixtureForm">
-                    <input type="text" id="fixture-season-id" name="season_id" placeholder="Season ID" required>
-                    <input type="number" id="fixture-games-per-pair" name="max_games_per_pair" placeholder="Games Per Pair" value="1" required>
-                    <button type="submit">Create</button>
-                    <div id="createFixtureMessage"></div>
-                </form>
+                <div class="space-y-6 p-4">
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-xl font-semibold mb-4">Create Fixture</h3>
+                        <form id="createFixtureForm" class="space-y-4">
+                            <input type="number" id="fixture-season-id" name="season_id" placeholder="Season ID" class="w-full p-2 border border-gray-300 rounded-md" required>
+                            <input type="number" id="fixture-games-per-pair" name="games_per_pair" placeholder="Games Per Pair" value="1" min="1" class="w-full p-2 border border-gray-300 rounded-md" required>
+                            <input type="date" id="fixture-start-date" name="start_date" class="w-full p-2 border border-gray-300 rounded-md" required>
+                            <input type="number" id="fixture-games-per-day" name="games_per_day" placeholder="Games Per Day" value="2" min="1" class="w-full p-2 border border-gray-300 rounded-md" required>
+                            <button type="submit" class="w-full p-2 bg-blue-500 text-white font-bold rounded-md hover:bg-blue-600 transition-colors">Create</button>
+                            <div id="createFixtureMessage" class="text-center mt-2"></div>
+                        </form>
+                    </div>
 
-                <h3>Fixtures</h3>
-            `;
-            
-            if (data.length === 0) {
-                html += "<p>No fixtures found. Please create one above.</p>";
-            } else {
-                html += "<ul>";
-                data.forEach(m => {
-                    // Note: match_date is now used from the PHP response for frontend consistency
-                    html += `
-                        <li>
-                            ${m.home_team} vs ${m.away_team} 
-                            on ${m.match_date}
-                            ${m.result ? `<strong>Result: ${m.result}</strong>` : ""}
-                            <button onclick="showRecordResultForm(${m.id})">Record Result</button>
-                            <button onclick="showRescheduleForm(${m.id})">Reschedule</button>
-                        </li>
-                    `;
-                });
-                html += "</ul>";
-            }
-            
-            // Add the hidden forms to the end of the HTML string
-            html += `
-                <div id="recordResultForm" style="display:none;">
-                    <h3>Record Result</h3>
-                    <form onsubmit="submitResult(event)">
-                        <input type="hidden" id="matchIdResult" name="match_id">
-                        <input type="text" name="result" placeholder="e.g. 2-1" required>
-                        <button type="submit">Save</button>
-                    </form>
-                </div>
-    
-                <div id="rescheduleForm" style="display:none;">
-                    <h3>Reschedule Match</h3>
-                    <form onsubmit="submitReschedule(event)">
-                        <input type="hidden" id="matchIdReschedule" name="match_id">
-                        <input type="date" name="new_date" required>
-                        <button type="submit">Update</button>
-                    </form>
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-xl font-semibold mb-4">Fixtures</h3>
+                        ${data.length === 0 ? `
+                            <p class="text-gray-500 text-center">No fixtures found. Please create one above.</p>
+                        ` : `
+                            <ul class="space-y-4">
+                                ${data.map(m => `
+                                    <li class="border-b pb-4 last:border-b-0">
+                                        <div class="flex flex-col md:flex-row justify-between items-center mb-2">
+                                            <span class="font-bold">${m.home_team} vs ${m.away_team}</span>
+                                            <span class="text-sm text-gray-500">on ${m.match_date}</span>
+                                        </div>
+                                        ${m.status === 'completed' ? `
+                                            <div class="text-center font-bold text-lg text-green-600">
+                                                Result: ${m.home_goals} - ${m.away_goals}
+                                            </div>
+                                        ` : `
+                                            <div class="space-y-2">
+                                                <form onsubmit="submitResult(event)" class="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-2">
+                                                    <input type="hidden" name="match_id" value="${m.id}">
+                                                    <input type="number" name="home_goals" placeholder="${m.home_team} goals" class="w-full p-2 border border-gray-300 rounded-md" required>
+                                                    <span class="font-bold">-</span>
+                                                    <input type="number" name="away_goals" placeholder="${m.away_team} goals" class="w-full p-2 border border-gray-300 rounded-md" required>
+                                                    <button type="submit" class="w-full p-2 bg-green-500 text-white font-bold rounded-md hover:bg-green-600 transition-colors">Record Result</button>
+                                                </form>
+                                                <form onsubmit="submitReschedule(event)" class="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-2">
+                                                    <input type="hidden" name="match_id" value="${m.id}">
+                                                    <input type="date" name="new_date" class="w-full p-2 border border-gray-300 rounded-md" required>
+                                                    <button type="submit" class="w-full p-2 bg-yellow-500 text-white font-bold rounded-md hover:bg-yellow-600 transition-colors">Reschedule</button>
+                                                </form>
+                                            </div>
+                                        `}
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        `}
+                    </div>
                 </div>
             `;
-            
             return html;
         }
 
@@ -71,26 +72,15 @@ async function loadMatches() {
         document.getElementById("createFixtureForm").addEventListener("submit", async (e) => {
             e.preventDefault();
             const messageDiv = document.getElementById("createFixtureMessage");
+            messageDiv.textContent = "Creating fixtures...";
+            messageDiv.style.color = "blue";
 
-            const season_id = document.getElementById("fixture-season-id").value.trim();
-            const max_games_per_pair = document.getElementById("fixture-games-per-pair").value.trim();
-
-            if (!season_id) {
-                messageDiv.style.color = "red";
-                messageDiv.textContent = "Season ID is required.";
-                return;
-            }
-            if (max_games_per_pair < 1) {
-                messageDiv.style.color = "red";
-                messageDiv.textContent = "Games per pair must be 1 or more.";
-                return;
-            }
+            const formData = new FormData(e.target);
 
             try {
                 const res = await fetch("../api/matches/create_fixture.php", {
                     method: "POST",
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ season_id: parseInt(season_id), max_games_per_pair: parseInt(max_games_per_pair) })
+                    body: formData
                 });
 
                 const data = await res.json();
@@ -115,34 +105,22 @@ async function loadMatches() {
     }
 }
 
-// Show result form
-function showRecordResultForm(matchId) {
-    document.getElementById("recordResultForm").style.display = "block";
-    document.getElementById("matchIdResult").value = matchId;
-}
-
 // Submit result
 async function submitResult(event) {
     event.preventDefault();
     const formData = new FormData(event.target);
-    await fetch("/api/matches.php?action=result", {
+    await fetch("../api/matches/record_results.php", {
         method: "POST",
         body: formData
     });
     loadMatches();
 }
 
-// Show reschedule form
-function showRescheduleForm(matchId) {
-    document.getElementById("rescheduleForm").style.display = "block";
-    document.getElementById("matchIdReschedule").value = matchId;
-}
-
 // Submit reschedule
 async function submitReschedule(event) {
     event.preventDefault();
     const formData = new FormData(event.target);
-    await fetch("/api/matches.php?action=reschedule", {
+    await fetch("../api/matches/reschedule.php", {
         method: "POST",
         body: formData
     });
