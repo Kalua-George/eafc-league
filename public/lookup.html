@@ -2,88 +2,174 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EAFC League - Check Player Status</title>
+    <link rel="stylesheet" href="styles/main.css">
 </head>
 <body>
-    <h1>Check Your Player Status</h1>
-    <p>Enter your Gamer Tag or Phone Number to see your registration status and stats.</p>
-
-    <form id="lookupForm">
-        <label for="identifier">Gamer Tag / Phone:</label>
-        <input type="text" id="identifier" name="identifier" required>
-        <button type="submit">Check Status</button>
-    </form>
-
-    <div id="message" style="color:red;"></div>
-
-    <div id="playerInfo" style="display:none; margin-top:20px;">
-        <h2>Player Info</h2>
-        <p><strong>Gamer Tag:</strong> <span id="gamerTag"></span></p>
-        <p><strong>Phone:</strong> <span id="phone"></span></p>
-        <p><strong>Status:</strong> <span id="status"></span></p>
-
-        <div id="stats" style="display:none; margin-top:10px;">
-            <h3>Stats</h3>
-            <p><strong>Points:</strong> <span id="points"></span></p>
-            <p><strong>Wins:</strong> <span id="wins"></span></p>
-            <p><strong>Draws:</strong> <span id="draws"></span></p>
-            <p><strong>Losses:</strong> <span id="losses"></span></p>
-            <p><strong>Goals For:</strong> <span id="gf"></span></p>
-            <p><strong>Goals Against:</strong> <span id="ga"></span></p>
-            <p><strong>Goal Difference:</strong> <span id="gd"></span></p>
+    
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" class="logo">EAFC League</a>
+                <nav class="nav">
+                    <a href="index.html" class="nav-link">Home</a>
+                    <a href="registration.html" class="nav-link">Register</a>
+                    <a href="lookup.html" class="nav-link">Player Status</a>
+                    <a href="login.html" class="nav-link">Admin Login</a>
+                </nav>
+            </div>
         </div>
-    </div>
+    </header>
 
-    <script>
-        const form = document.getElementById('lookupForm');
-        const messageDiv = document.getElementById('message');
-        const playerInfoDiv = document.getElementById('playerInfo');
-        const statsDiv = document.getElementById('stats');
+     
+    <main class="min-h-screen bg-gray-50">
+         Alerts Container 
+        <div id="alerts" class="container pt-4"></div>
 
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const identifier = form.identifier.value.trim();
+         
+        <section class="py-16">
+            <div class="container">
+                <div class="max-w-2xl mx-auto">
+                     
+                    <div class="text-center mb-8">
+                        <h1 class="text-3xl font-bold text-black mb-4">Check Your Player Status</h1>
+                        <p class="text-gray-600">Enter your Gamer Tag or Phone Number to see your registration status and stats</p>
+                    </div>
 
-            if (!identifier) return;
+                     
+                    <div class="card mb-6">
+                        <div class="card-body">
+                            <form id="lookupForm">
+                                <div class="form-group">
+                                    <label for="identifier" class="form-label">Gamer Tag or Phone Number</label>
+                                    <input 
+                                        type="text" 
+                                        id="identifier" 
+                                        name="identifier" 
+                                        class="form-input" 
+                                        required
+                                        placeholder="Enter your gamer tag or phone number"
+                                    >
+                                </div>
 
-            try {
-                const response = await fetch('/api/players/get_player.php?identifier=' + encodeURIComponent(identifier));
-                const result = await response.json();
+                                <button 
+                                    type="submit" 
+                                    id="lookupBtn" 
+                                    class="btn btn-primary w-full"
+                                >
+                                    <span id="lookupText">Check Status</span>
+                                    <div id="lookupSpinner" class="spinner hidden"></div>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
 
-                if (result.error) {
-                    messageDiv.style.color = 'red';
-                    messageDiv.textContent = result.error;
-                    playerInfoDiv.style.display = 'none';
-                    statsDiv.style.display = 'none';
-                } else {
-                    messageDiv.textContent = '';
-                    playerInfoDiv.style.display = 'block';
+                     
+                    <div id="playerInfo" class="hidden">
+                         
+                        <div class="card mb-6">
+                            <div class="card-header">
+                                <h2 class="text-xl font-semibold">Player Information</h2>
+                            </div>
+                            <div class="card-body">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="text-sm font-medium text-gray-600">Gamer Tag</label>
+                                        <p id="gamerTag" class="font-semibold text-lg"></p>
+                                    </div>
+                                    <div>
+                                        <label class="text-sm font-medium text-gray-600">Phone Number</label>
+                                        <p id="phone" class="font-semibold text-lg"></p>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-4">
+                                    <label class="text-sm font-medium text-gray-600">Registration Status</label>
+                                    <div id="statusContainer" class="mt-1">
+                                        <span id="status" class="badge"></span>
+                                    </div>
+                                </div>
 
-                    document.getElementById('gamerTag').textContent = result.gamer_tag;
-                    document.getElementById('phone').textContent = result.phone;
-                    document.getElementById('status').textContent = result.status;
+                                <div id="statusMessage" class="mt-4 p-4 rounded-md"></div>
+                            </div>
+                        </div>
 
-                    if (result.status === 'approved') {
-                        statsDiv.style.display = 'block';
-                        document.getElementById('points').textContent = result.points;
-                        document.getElementById('wins').textContent = result.wins;
-                        document.getElementById('draws').textContent = result.draws;
-                        document.getElementById('losses').textContent = result.losses;
-                        document.getElementById('gf').textContent = result.goals_for;
-                        document.getElementById('ga').textContent = result.goals_against;
-                        document.getElementById('gd').textContent = result.goal_diff;
-                    } else {
-                        statsDiv.style.display = 'none';
-                    }
-                }
+                        
+                        <div id="stats" class="card hidden">
+                            <div class="card-header">
+                                <h3 class="text-xl font-semibold">Season Statistics</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                                    <div class="text-center">
+                                        <div class="text-2xl font-bold text-green" id="points">0</div>
+                                        <div class="text-sm text-gray-600">Points</div>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="text-2xl font-bold text-blue" id="wins">0</div>
+                                        <div class="text-sm text-gray-600">Wins</div>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="text-2xl font-bold text-gray-600" id="draws">0</div>
+                                        <div class="text-sm text-gray-600">Draws</div>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="text-2xl font-bold text-red" id="losses">0</div>
+                                        <div class="text-sm text-gray-600">Losses</div>
+                                    </div>
+                                </div>
 
-            } catch (err) {
-                messageDiv.style.color = 'red';
-                messageDiv.textContent = "Network or server error";
-                playerInfoDiv.style.display = 'none';
-                statsDiv.style.display = 'none';
-            }
-        });
-    </script>
+                                <div class="grid grid-cols-3 gap-4">
+                                    <div class="text-center">
+                                        <div class="text-xl font-bold" id="gf">0</div>
+                                        <div class="text-sm text-gray-600">Goals For</div>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="text-xl font-bold" id="ga">0</div>
+                                        <div class="text-sm text-gray-600">Goals Against</div>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="text-xl font-bold" id="gd">0</div>
+                                        <div class="text-sm text-gray-600">Goal Difference</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                
+                    <div id="notFoundMessage" class="card hidden">
+                        <div class="card-body text-center">
+                            <div class="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <span class="text-gray-500 text-2xl">?</span>
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-700 mb-2">Player Not Found</h3>
+                            <p class="text-gray-600 mb-4">No player found with that gamer tag or phone number.</p>
+                            <a href="registration.html" class="btn btn-primary">Register Now</a>
+                        </div>
+                    </div>
+
+                     
+                    <div class="text-center mt-8">
+                        <p class="text-gray-600 mb-4">Need to register?</p>
+                        <a href="registration.html" class="btn btn-outline">Register as Player</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+     
+    <footer class="bg-black text-white py-8">
+        <div class="container">
+            <div class="text-center">
+                <p class="text-gray-400">© 2024 EAFC League. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/utils.js"></script>
+    <script src="js/lookup.js"></script>
 </body>
 </html>

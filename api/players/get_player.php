@@ -18,7 +18,7 @@ if (!$search) {
 
 try {
     $stmt = $pdo->prepare("
-        SELECT id, gamer_tag, phone, status
+        SELECT id, gamer_tag, phone, status,
         FROM players
         WHERE gamer_tag = ? OR phone = ?
         LIMIT 1

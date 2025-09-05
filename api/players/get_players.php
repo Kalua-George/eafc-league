@@ -20,7 +20,7 @@ $status_filter = $_GET['status'] ?? null;
 try {
     if ($status_filter && in_array($status_filter, ['pending','approved','rejected'], true)) {
         $stmt = $pdo->prepare("
-            SELECT id, gamer_tag, phone, status
+            SELECT id, gamer_tag, phone, status, created_at
             FROM players
             WHERE status = ?
             ORDER BY gamer_tag ASC
@@ -28,7 +28,7 @@ try {
         $stmt->execute([$status_filter]);
     } else {
         $stmt = $pdo->prepare("
-            SELECT id, gamer_tag, phone, status
+            SELECT id, gamer_tag, phone, status, created_at
             FROM players
             ORDER BY status ASC, gamer_tag ASC
         ");

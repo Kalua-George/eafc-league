@@ -2,61 +2,130 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EAFC League - Player Registration</title>
+    <link rel="stylesheet" href="styles/main.css">
 </head>
 <body>
-    <h1>Player Registration</h1>
-    <p>Register to participate in the current EAFC League season.</p>
 
-    <form id="registrationForm">
-        <label for="gamer_tag">Gamer Tag:</label>
-        <input type="text" id="gamer_tag" name="gamer_tag" required>
-        <br><br>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" class="logo">EAFC League</a>
+                <nav class="nav">
+                    <a href="index.html" class="nav-link">Home</a>
+                    <a href="registration.html" class="nav-link">Register</a>
+                    <a href="lookup.html" class="nav-link">Player Status</a>
+                    <a href="login.html" class="nav-link">Admin Login</a>
+                </nav>
+            </div>
+        </div>
+    </header>
 
-        <label for="phone">Phone Number:</label>
-        <input type="text" id="phone" name="phone" required>
-        <br><br>
+     
+    <main class="min-h-screen bg-gray-50">
+         
+        <div id="alerts" class="container pt-4"></div>
 
-        <button type="submit">Register</button>
-    </form>
 
-    <div id="message" style="color:red;"></div>
+        <section class="py-16">
+            <div class="container">
+                <div class="max-w-md mx-auto">
+                     Header 
+                    <div class="text-center mb-8">
+                        <h1 class="text-3xl font-bold text-black mb-4">Player Registration</h1>
+                        <p class="text-gray-600">Register to participate in the current EAFC League season</p>
+                    </div>
 
-    <script>
-        const form = document.getElementById('registrationForm');
-        const messageDiv = document.getElementById('message');
+            
+                    <div class="card">
+                        <div class="card-body">
+                            <form id="registrationForm">
+                                <div class="form-group">
+                                    <label for="gamer_tag" class="form-label">Gamer Tag *</label>
+                                    <input 
+                                        type="text" 
+                                        id="gamer_tag" 
+                                        name="gamer_tag" 
+                                        class="form-input" 
+                                        required
+                                        placeholder="Enter your gamer tag"
+                                        maxlength="50"
+                                    >
+                                </div>
 
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
+                                <div class="form-group">
+                                    <label for="phone" class="form-label">Phone Number *</label>
+                                    <input 
+                                        type="tel" 
+                                        id="phone" 
+                                        name="phone" 
+                                        class="form-input" 
+                                        required
+                                        placeholder="Enter your phone number"
+                                        maxlength="20"
+                                    >
+                                </div>
 
-            const data = {
-                gamer_tag: form.gamer_tag.value.trim(),
-                phone: form.phone.value.trim()
-            };
+                                <div class="form-group mb-6">
+                                    <div class="bg-gray-50 p-4 rounded-md">
+                                        <h3 class="font-semibold text-sm text-gray-700 mb-2">Registration Process:</h3>
+                                        <ul class="text-sm text-gray-600 space-y-1">
+                                            <li>• Submit your registration form</li>
+                                            <li>• Admin will review your application</li>
+                                            <li>• You'll be notified of approval status</li>
+                                            <li>• Once approved, you can participate in matches</li>
+                                        </ul>
+                                    </div>
+                                </div>
 
-            try {
-                const response = await fetch('/api/players/add_player.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
+                                <button 
+                                    type="submit" 
+                                    id="submitBtn" 
+                                    class="btn btn-primary w-full"
+                                >
+                                    <span id="submitText">Register Now</span>
+                                    <div id="submitSpinner" class="spinner hidden"></div>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
 
-                const result = await response.json();
 
-                if (result.success) {
-                    messageDiv.style.color = 'green';
-                    messageDiv.textContent = "Registration submitted successfully! Await admin approval.";
-                    form.reset();
-                } else {
-                    messageDiv.style.color = 'red';
-                    messageDiv.textContent = result.error || "Registration failed";
-                }
+                    <div id="successMessage" class="card mt-6 hidden">
+                        <div class="card-body text-center">
+                            <div class="w-16 h-16 bg-green rounded-full flex items-center justify-center mx-auto mb-4">
+                                <span class="text-white text-2xl">✓</span>
+                            </div>
+                            <h3 class="text-lg font-semibold text-green mb-2">Registration Submitted!</h3>
+                            <p class="text-gray-600 mb-4">Your registration has been submitted successfully. Please wait for admin approval.</p>
+                            <div class="flex gap-3 justify-center">
+                                <a href="lookup.html" class="btn btn-secondary">Check Status</a>
+                                <a href="index.html" class="btn btn-outline">Back to Home</a>
+                            </div>
+                        </div>
+                    </div>
 
-            } catch (err) {
-                messageDiv.style.color = 'red';
-                messageDiv.textContent = "Network or server error";
-            }
-        });
-    </script>
+                    <div class="text-center mt-8">
+                        <p class="text-gray-600 mb-4">Already registered?</p>
+                        <a href="lookup.html" class="btn btn-outline">Check Your Status</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+     
+    <footer class="bg-black text-white py-8">
+        <div class="container">
+            <div class="text-center">
+                <p class="text-gray-400">© 2024 EAFC League. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+     
+    <script src="js/utils.js"></script>
+    <script src="js/registration.js"></script>
 </body>
 </html>

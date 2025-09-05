@@ -1,210 +1,250 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EAFC League - Admin Dashboard</title>
-    <style>
-        /* Basic modal styling */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-        }
-
-        .modal-content {
-            background: #fff;
-            padding: 20px;
-            margin: 100px auto;
-            width: 400px;
-            border-radius: 8px;
-            position: relative;
-        }
-
-        .modal-close {
-            position: absolute;
-            top: 5px;
-            right: 10px;
-            cursor: pointer;
-            font-size: 20px;
-        }
-
-        .modal,
-        label,
-        input {
-            display: block;
-            width: 100%;
-            margin-bottom: 10px;
-        }
-
-        button {
-            margin-top: 10px;
-        }
-    </style>
+    <link rel="stylesheet" href="styles/main.css">
 </head>
+<body class="bg-gray-50">
+     
+    <header class="bg-black text-white shadow-lg">
+        <div class="container">
+            <div class="flex items-center justify-between py-4">
+                <div class="flex items-center gap-4">
+                    <a href="index.html" class="logo text-green">EAFC League</a>
+                    <span class="text-gray-400">|</span>
+                    <span class="text-lg font-semibold">Admin Dashboard</span>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <span class="text-sm text-gray-300">Welcome, <span id="adminUsername">Admin</span></span>
+                    <button id="logoutBtn" class="btn btn-danger btn-sm">
+                        <span>Logout</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
 
-<body>
-    <h1>Admin Dashboard</h1>
-    <p>Welcome, Admin!</p>
 
-    <!-- Navigation / Toggle Buttons -->
-    <div>
-        <button data-section="players">Players</button>
-        <button data-section="seasons">Seasons</button>
-        <button data-section="matches">Matches</button>
-        <button data-section="logs">System Logs</button>
-        <button data-section="reports">Reports</button>
-        <button id="logoutBtn">Logout</button>
-    </div>
+    <main class="min-h-screen">
+        <div id="alerts" class="container pt-4"></div>
 
-    <!-- Sections -->
-    <!-- Players Section -->
-    <div id="players" class="section" style="display:none;">
-        <h2>Players</h2>
-
-        <!-- Add new player form -->
-        <div id="addPlayerSection">
-            <h3>Add New Player</h3>
-            <form id="addPlayerForm">
-                <label for="gamer_tag">Gamer Tag:</label>
-                <input type="text" id="gamer_tag" required>
-                <label for="phone">Phone:</label>
-                <input type="text" id="phone" required>
-                <button type="submit">Add Player</button>
-            </form>
-            <div id="addPlayerMessage" style="color:green"></div>
+        <div class="bg-white border-b border-gray-200 sticky top-0 z-40">
+            <div class="container">
+                <nav class="flex gap-1 py-4 overflow-x-auto">
+                    <button data-section="overview" class="nav-tab active">
+                        <span class="text-lg">📊</span>
+                        <span>Overview</span>
+                    </button>
+                    <button data-section="players" class="nav-tab">
+                        <span class="text-lg">👥</span>
+                        <span>Players</span>
+                    </button>
+                    <button data-section="seasons" class="nav-tab">
+                        <span class="text-lg">🏆</span>
+                        <span>Seasons</span>
+                    </button>
+                    <button data-section="matches" class="nav-tab">
+                        <span class="text-lg">⚽</span>
+                        <span>Matches</span>
+                    </button>
+                    <button data-section="logs" class="nav-tab">
+                        <span class="text-lg">📋</span>
+                        <span>System Logs</span>
+                    </button>
+                </nav>
+            </div>
         </div>
 
-        <!-- Player list table -->
-        <div id="playersContent">Loading players...</div>
-    </div>
+         
+        <div class="container py-8">
+    
+            <div id="overview" class="section">
+                <div class="mb-8">
+                    <h1 class="text-3xl font-bold text-black mb-2">Dashboard Overview</h1>
+                    <p class="text-gray-600">Manage your EAFC League system</p>
+                </div>
 
-    <!-- Seasons Section -->
-    <div id="seasons" class="section" style="display:none;">
-        <h2>Seasons</h2>
+                 
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <div class="text-3xl font-bold text-green mb-2" id="totalPlayers">0</div>
+                            <div class="text-sm text-gray-600">Total Players</div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <div class="text-3xl font-bold text-blue mb-2" id="pendingPlayers">0</div>
+                            <div class="text-sm text-gray-600">Pending Approvals</div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <div class="text-3xl font-bold text-red mb-2" id="totalMatches">0</div>
+                            <div class="text-sm text-gray-600">Total Matches</div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <div class="text-3xl font-bold text-gray-700 mb-2" id="activeSeasons">0</div>
+                            <div class="text-sm text-gray-600">Active Seasons</div>
+                        </div>
+                    </div>
+                </div>
 
-        <!-- Add new season form -->
-        <div id="addSeasonSection">
-            <h3>Add New Season</h3>
-            <form id="addSeasonForm">
-                <label for="seasonName">Season Name:</label>
-                <input type="text" id="seasonName" required>
-                <label for="seasonYear">Year:</label>
-                <input type="number" id="seasonYear" required>
-                <label>start date:</label>
-                <input type="date" id="seasonStart" required>
-                <label>End date:</label>
-                <input type="date" id="seasonEnd" required>
-                <button type="submit">Add Season</button>
-            </form>
-            <div id="addSeasonMessage" style="color:green"></div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="card cursor-pointer hover:shadow-md transition" onclick="showSection('players')">
+                        <div class="card-body">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 bg-green rounded-lg flex items-center justify-center">
+                                    <span class="text-white text-xl">👥</span>
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold text-lg">Manage Players</h3>
+                                    <p class="text-gray-600 text-sm">Add, edit, approve players</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card cursor-pointer hover:shadow-md transition" onclick="showSection('seasons')">
+                        <div class="card-body">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 bg-blue rounded-lg flex items-center justify-center">
+                                    <span class="text-white text-xl">🏆</span>
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold text-lg">Manage Seasons</h3>
+                                    <p class="text-gray-600 text-sm">Create and manage seasons</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card cursor-pointer hover:shadow-md transition" onclick="showSection('matches')">
+                        <div class="card-body">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 bg-red rounded-lg flex items-center justify-center">
+                                    <span class="text-white text-xl">⚽</span>
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold text-lg">Manage Matches</h3>
+                                    <p class="text-gray-600 text-sm">Schedule and record matches</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card cursor-pointer hover:shadow-md transition" onclick="showSection('logs')">
+                        <div class="card-body">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 bg-gray-600 rounded-lg flex items-center justify-center">
+                                    <span class="text-white text-xl">📋</span>
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold text-lg">System Logs</h3>
+                                    <p class="text-gray-600 text-sm">View system activity</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
+                                    <span class="text-gray-500 text-xl">📊</span>
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold text-lg">Reports</h3>
+                                    <p class="text-gray-600 text-sm">Coming soon...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
+                                    <span class="text-gray-500 text-xl">⚙️</span>
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold text-lg">Settings</h3>
+                                    <p class="text-gray-600 text-sm">Coming soon...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+             Players Section 
+            <div id="players" class="section hidden">
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold text-black mb-2">Player Management</h2>
+                    <p class="text-gray-600">Manage player registrations and information</p>
+                </div>
+                <div id="playersContent">
+                    <div class="text-center py-8">
+                        <div class="spinner mx-auto mb-4"></div>
+                        <p class="text-gray-600">Loading players...</p>
+                    </div>
+                </div>
+            </div>
+
+            
+            <div id="seasons" class="section hidden">
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold text-black mb-2">Season Management</h2>
+                    <p class="text-gray-600">Create and manage league seasons</p>
+                </div>
+                <div id="seasonsContent">
+                    <div class="text-center py-8">
+                        <div class="spinner mx-auto mb-4"></div>
+                        <p class="text-gray-600">Loading seasons...</p>
+                    </div>
+                </div>
+            </div>
+
+             
+            <div id="matches" class="section hidden">
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold text-black mb-2">Match Management</h2>
+                    <p class="text-gray-600">Schedule fixtures and record results</p>
+                </div>
+                <div id="matchesContent">
+                    <div class="text-center py-8">
+                        <div class="spinner mx-auto mb-4"></div>
+                        <p class="text-gray-600">Loading matches...</p>
+                    </div>
+                </div>
+            </div>
+
+             
+            <div id="logs" class="section hidden">
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold text-black mb-2">System Logs</h2>
+                    <p class="text-gray-600">View system activity and audit trail</p>
+                </div>
+                <div id="logsContent">
+                    <div class="text-center py-8">
+                        <div class="spinner mx-auto mb-4"></div>
+                        <p class="text-gray-600">Loading logs...</p>
+                    </div>
+                </div>
+            </div>
         </div>
+    </main>
 
-        <!-- Seasons list table -->
-        <div id="seasonsContent">Loading seasons...</div>
-    </div>
+     
 
-    <!-- Matches Section -->
-    <div id="matches" class="section" style="display:none;">
-        <h2>Matches</h2>
-        <div id="matchesContent"></div>
-    </div>
-
-    <!-- Logs Section -->
-    <div id="logs" class="section" style="display:none;">
-        <h2>System Logs</h2>
-        <div id="logsContent">Loading logs...</div>
-    </div>
-
-    <!-- Reports Section -->
-    <div id="reports" class="section" style="display:none;">
-        <h2>Reports</h2>
-        <div id="reportsContent">Loading reports...</div>
-    </div>
-
-    <!-- Edit Player Modal -->
-    <div id="editPlayerModal" class="modal">
-        <div class="modal-content">
-            <span class="modal-close" onclick="closeEditPlayerModal()">&times;</span>
-            <h3>Edit Player</h3>
-            <form id="editPlayerForm">
-                <input type="hidden" id="editPlayerId" />
-                <label for="editGamerTag">Gamer Tag:</label>
-                <input type="text" id="editGamerTag" required />
-                <label for="editPhone">Phone:</label>
-                <input type="text" id="editPhone" required />
-                <button type="submit">Save Changes</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Edit Season Modal (Current Season Only) -->
-    <div id="editSeasonModal" class="modal">
-        <div class="modal-content">
-            <span class="modal-close" onclick="closeEditSeasonModal()">&times;</span>
-            <h3>Edit Current Season</h3>
-            <form id="editSeasonForm">
-                <input type="hidden" id="editSeasonId" />
-
-                <label for="editSeasonName">Season Name:</label>
-                <input type="text" id="editSeasonName" disabled />
-
-                <label for="editSeasonYear">Year:</label>
-                <input type="number" id="editSeasonYear" disabled />
-
-                <label for="editSeasonStart">Start Date:</label>
-                <input type="date" id="editSeasonStart" disabled />
-
-                <label for="editSeasonEnd">End Date:</label>
-                <input type="date" id="editSeasonEnd" required />
-
-                <button type="submit">Save Changes</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- View Season Modal (Past Seasons Rankings) -->
-    <div id="viewSeasonModal" class="modal">
-        <div class="modal-content">
-            <span class="modal-close" onclick="closeViewSeasonModal()">&times;</span>
-            <h3>Season Rankings</h3>
-            <div id="seasonRankingsContent">Loading rankings...</div>
-        </div>
-    </div>
-
-    <!-- Navigation Script -->
-    <script>
-        const buttons = document.querySelectorAll('button[data-section]');
-        const sections = document.querySelectorAll('.section');
-
-        buttons.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const sectionId = btn.getAttribute('data-section');
-                sections.forEach(sec => sec.style.display = 'none'); // Hide all
-                document.getElementById(sectionId).style.display = 'block'; // Show selected
-            });
-        });
-
-        // Logout
-        document.getElementById('logoutBtn').addEventListener('click', async () => {
-            try {
-                await fetch('../api/logout.php', { method: 'POST' });
-                window.location.href = 'login.html';
-            } catch {
-                alert('Logout failed');
-            }
-        });
-    </script>
-
-    <!-- JS -->
-    <script src="JS/players.js"></script>
-    <script src="JS/seasons.js"></script>
-    <script src="JS/matches.js"></script>
-    <script src="JS/logs.js"></script>
+    
+    <script src="js/utils.js"></script>
+    <script src="js/dashboard.js"></script>
 </body>
-
 </html>
