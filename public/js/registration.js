@@ -6,26 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const submitSpinner = document.getElementById("submitSpinner")
   const successMessage = document.getElementById("successMessage")
 
-  const EAFC = {
-    clearFormErrors: (formId) => {
-      // Implementation for clearing form errors
-    },
-    getFormData: (formId) => {
-      // Implementation for getting form data
-    },
-    validateForm: (formData, validationRules) => {
-      // Implementation for validating form data
-    },
-    showFormErrors: (errors, formId) => {
-      // Implementation for showing form errors
-    },
-    showAlert: (message, type) => {
-      // Implementation for showing alert
-    },
-    apiCall: async (url, options) => {
-      // Implementation for making API call
-    },
-  }
+ 
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault()
