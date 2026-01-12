@@ -662,11 +662,57 @@ body {
 }
 
 /* Responsive utilities */
+@media (max-width: 480px) {
+  .container {
+    padding: 0 var(--space-2);
+  }
+
+  .text-4xl {
+    font-size: var(--font-size-2xl);
+  }
+
+  .text-3xl {
+    font-size: var(--font-size-xl);
+  }
+
+  .text-2xl {
+    font-size: var(--font-size-lg);
+  }
+
+  .btn {
+    width: 100%;
+    margin-bottom: var(--space-2);
+  }
+
+  .btn-sm {
+    padding: var(--space-3) var(--space-4);
+    min-height: 40px;
+  }
+
+  .modal-content {
+    width: 98%;
+    margin: var(--space-2);
+  }
+
+  .modal-header,
+  .modal-body,
+  .modal-footer {
+    padding: var(--space-4);
+  }
+
+  .card-header,
+  .card-body,
+  .card-footer {
+    padding: var(--space-4);
+  }
+}
+
 @media (max-width: 768px) {
   .container {
     padding: 0 var(--space-3);
   }
 
+  /* Better grid responsiveness */
   .grid-cols-2 {
     grid-template-columns: 1fr;
   }
@@ -676,9 +722,10 @@ body {
   }
 
   .grid-cols-4 {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: 1fr;
   }
 
+  /* Mobile navigation improvements */
   .nav {
     flex-direction: column;
     gap: var(--space-3);
@@ -687,19 +734,142 @@ body {
   .header-content {
     flex-direction: column;
     gap: var(--space-4);
+    text-align: center;
   }
 
+  /* Mobile modal improvements */
   .modal-content {
     width: 95%;
+    margin: var(--space-4);
+  }
+
+  /* Responsive table with horizontal scroll */
+  .table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-md);
   }
 
   .table {
     font-size: var(--font-size-sm);
+    min-width: 600px;
   }
 
   .table th,
   .table td {
     padding: var(--space-2);
+    white-space: nowrap;
+  }
+
+  /* Mobile form improvements */
+  .form-input,
+  .form-select {
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+
+  /* Mobile button improvements */
+  .btn {
+    min-height: 44px; /* Better touch target */
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .btn-sm {
+    min-height: 40px;
+  }
+
+  /* Mobile spacing adjustments */
+  .p-8 {
+    padding: var(--space-4);
+  }
+
+  .py-8 {
+    padding-top: var(--space-4);
+    padding-bottom: var(--space-4);
+  }
+
+  .px-6 {
+    padding-left: var(--space-4);
+    padding-right: var(--space-4);
+  }
+
+  /* Mobile card improvements */
+  .card {
+    margin-bottom: var(--space-4);
+  }
+
+  /* Mobile alert improvements */
+  .alert {
+    padding: var(--space-3);
+    font-size: var(--font-size-sm);
+  }
+}
+
+@media (max-width: 1024px) {
+  .grid-cols-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .grid-cols-3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Additional mobile-specific utilities */
+.mobile-hidden {
+  display: block;
+}
+
+.mobile-only {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mobile-hidden {
+    display: none;
+  }
+
+  .mobile-only {
+    display: block;
+  }
+
+  .mobile-flex {
+    display: flex;
+  }
+
+  .mobile-grid {
+    display: grid;
+  }
+
+  .mobile-text-center {
+    text-align: center;
+  }
+
+  .mobile-text-sm {
+    font-size: var(--font-size-sm);
+  }
+
+  .mobile-p-2 {
+    padding: var(--space-2);
+  }
+
+  .mobile-mb-4 {
+    margin-bottom: var(--space-4);
+  }
+}
+
+/* Touch-friendly improvements */
+@media (hover: none) and (pointer: coarse) {
+  .btn:hover {
+    transform: none;
+  }
+
+  .table tbody tr:hover {
+    background-color: transparent;
+  }
+
+  .nav-link:hover {
+    color: var(--white);
   }
 }
 

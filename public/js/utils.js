@@ -1,9 +1,9 @@
 // Utility functions for EAFC League Management System
 
-// API base URL - adjust this to match your PHP backend
-const API_BASE_URL = "/api"
+// API base URL - 
+const API_BASE_URL = "../api/"
 
-// Utility function to make API calls
+// Utility function to make API call
 async function apiCall(endpoint, options = {}) {
   const url = `${API_BASE_URL}${endpoint}`
   const config = {
@@ -20,7 +20,7 @@ async function apiCall(endpoint, options = {}) {
     const contentType = response.headers.get("content-type")
 
     if (!response.ok) {
-      // If it's an HTML error page, throw a more helpful error
+      // 
       if (contentType && contentType.includes("text/html")) {
         throw new Error(`API endpoint not found: ${url}. Please check your PHP backend is running.`)
       }

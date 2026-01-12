@@ -35,7 +35,9 @@ try {
     }
 
     // Determine default status
-    $status = $admin_id ? 'approved' : 'pending';
+  $is_admin_action = isset($_SESSION['admin_id']) && !empty($data['admin_action']);
+
+$status = $is_admin_action ? 'approved' : 'pending';
 
     // Insert new player
     $stmt = $pdo->prepare("INSERT INTO players (gamer_tag, phone, status) VALUES (?, ?, ?)");
@@ -47,7 +49,7 @@ try {
         $_SESSION['player_id'] = $player_id;
     }
 
-    // ✅ Use sprintf for readable log message
+    // Use sprintf for readable log message
     $details = sprintf(
         "Added player: gamer_tag='%s', phone='%s', status='%s'",
         $gamer_tag,

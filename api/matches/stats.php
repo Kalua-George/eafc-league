@@ -1,7 +1,13 @@
-<?php
+from the tree the standings.php file has been changed to stats.php and then
+here the file should return the following
+1. season standings
+2. season top goal scorer/s
+3. most clean sheets
+ standings .php is below
+ <?php
 session_start();
 require __DIR__ . "/../connect.php";
-require __DIR__ . "/../systemlogs/logger.php"; // log_admin_action()
+require __DIR__ . "/../systemlogs/logger.php"; // log_action()
 
 // Optional: log access if admin-only, or skip session check for public standings
 $admin_id = $_SESSION['admin_id'] ?? null;
@@ -15,7 +21,7 @@ if (!$season_id) {
 try {
     // Log access if admin
     if ($admin_id) {
-        log_admin_action($pdo, $admin_id, 'view_standings', 'season', $season_id, 'success', 'Accessed standings');
+        log_action($pdo, $admin_id, 'view_standings', 'season', $season_id, 'success', 'Accessed standings');
     }
 
     // Calculate standings
@@ -71,7 +77,8 @@ try {
 
 } catch (Exception $e) {
     if ($admin_id) {
-        log_admin_action($pdo, $admin_id, 'view_standings', 'season', $season_id, 'failed', $e->getMessage());
+        log_action($pdo, $admin_id, 'view_standings', 'season', $season_id, 'failed', $e->getMessage());
     }
     echo json_encode(["error" => "Failed to fetch standings"]);
 }
+?>

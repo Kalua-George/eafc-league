@@ -8,12 +8,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const statsDiv = document.getElementById("stats")
   const notFoundMessage = document.getElementById("notFoundMessage")
 
-  // Declare EAFC variable
-  const EAFC = {
-    showAlert: (message, type) => {
-      alert(`${type.toUpperCase()}: ${message}`)
-    },
-  }
+  
+ 
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault()
@@ -128,41 +124,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 `
     }
 
-    // Show stats only if approved
-    if (player.status === "approved") {
-      displayPlayerStats(player)
-      statsDiv.classList.remove("hidden")
-    } else {
-      statsDiv.classList.add("hidden")
-    }
+  
   }
 
-  function displayPlayerStats(player) {
-    // Points and match record
-    document.getElementById("points").textContent = player.points || 0
-    document.getElementById("wins").textContent = player.wins || 0
-    document.getElementById("draws").textContent = player.draws || 0
-    document.getElementById("losses").textContent = player.losses || 0
-
-    // Goals
-    document.getElementById("gf").textContent = player.goals_for || 0
-    document.getElementById("ga").textContent = player.goals_against || 0
-
-    // Goal difference with styling
-    const goalDiff = (player.goals_for || 0) - (player.goals_against || 0)
-    const gdElement = document.getElementById("gd")
-    gdElement.textContent = goalDiff > 0 ? `+${goalDiff}` : goalDiff
-
-    // Style goal difference
-    gdElement.className = "text-xl font-bold"
-    if (goalDiff > 0) {
-      gdElement.classList.add("text-green")
-    } else if (goalDiff < 0) {
-      gdElement.classList.add("text-red")
-    } else {
-      gdElement.classList.add("text-gray-600")
-    }
-  }
+  
 
   function capitalizeFirst(str) {
     return str.charAt(0).toUpperCase() + str.slice(1)

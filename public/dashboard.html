@@ -28,166 +28,52 @@
     </header>
 
 
-    <main class="min-h-screen">
-        <div id="alerts" class="container pt-4"></div>
+    <main class="flex min-h-screen">
+        <div id="alerts" class="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-md px-4"></div>
+        
+        <aside class="w-64 bg-gray-900 text-white min-h-screen py-8 px-4 border-r border-gray-800">
+            <nav class="flex flex-col gap-1">
+                <button class="nav-tab active" data-section="overview">
+                    <span class="text-2xl">🏠</span>
+                    <span>Overview</span>
+                </button>
+                <button class="nav-tab" data-section="players">
+                    <span class="text-2xl">👥</span>
+                    <span>Players</span>
+                </button>
+                <button class="nav-tab" data-section="seasons">
+                    <span class="text-2xl">📅</span>
+                    <span>Seasons</span>
+                </button>
+                <button class="nav-tab" data-section="matches">
+                    <span class="text-2xl">⚽</span>
+                    <span>Matches</span>
+                </button>
+                <button class="nav-tab" data-section="logs">
+                    <span class="text-2xl">📜</span>
+                    <span>Logs</span>
+                </button>
+            </nav>
+        </aside>
 
-        <div class="bg-white border-b border-gray-200 sticky top-0 z-40">
-            <div class="container">
-                <nav class="flex gap-1 py-4 overflow-x-auto">
-                    <button data-section="overview" class="nav-tab active">
-                        <span class="text-lg">📊</span>
-                        <span>Overview</span>
-                    </button>
-                    <button data-section="players" class="nav-tab">
-                        <span class="text-lg">👥</span>
-                        <span>Players</span>
-                    </button>
-                    <button data-section="seasons" class="nav-tab">
-                        <span class="text-lg">🏆</span>
-                        <span>Seasons</span>
-                    </button>
-                    <button data-section="matches" class="nav-tab">
-                        <span class="text-lg">⚽</span>
-                        <span>Matches</span>
-                    </button>
-                    <button data-section="logs" class="nav-tab">
-                        <span class="text-lg">📋</span>
-                        <span>System Logs</span>
-                    </button>
-                </nav>
-            </div>
-        </div>
-
-         
-        <div class="container py-8">
-    
+        <div class="flex-1 p-8">
             <div id="overview" class="section">
-                <div class="mb-8">
-                    <h1 class="text-3xl font-bold text-black mb-2">Dashboard Overview</h1>
-                    <p class="text-gray-600">Manage your EAFC League system</p>
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold text-black mb-2">Dashboard Overview</h2>
+                    <p class="text-gray-600">Quick stats on the league and players</p>
                 </div>
-
-                 
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    <div class="card">
-                        <div class="card-body text-center">
-                            <div class="text-3xl font-bold text-green mb-2" id="totalPlayers">0</div>
-                            <div class="text-sm text-gray-600">Total Players</div>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <div class="card-body text-center">
-                            <div class="text-3xl font-bold text-blue mb-2" id="pendingPlayers">0</div>
-                            <div class="text-sm text-gray-600">Pending Approvals</div>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <div class="card-body text-center">
-                            <div class="text-3xl font-bold text-red mb-2" id="totalMatches">0</div>
-                            <div class="text-sm text-gray-600">Total Matches</div>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <div class="card-body text-center">
-                            <div class="text-3xl font-bold text-gray-700 mb-2" id="activeSeasons">0</div>
-                            <div class="text-sm text-gray-600">Active Seasons</div>
-                        </div>
-                    </div>
-                </div>
-
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <div class="card cursor-pointer hover:shadow-md transition" onclick="showSection('players')">
-                        <div class="card-body">
-                            <div class="flex items-center gap-4">
-                                <div class="w-12 h-12 bg-green rounded-lg flex items-center justify-center">
-                                    <span class="text-white text-xl">👥</span>
-                                </div>
-                                <div>
-                                    <h3 class="font-semibold text-lg">Manage Players</h3>
-                                    <p class="text-gray-600 text-sm">Add, edit, approve players</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card cursor-pointer hover:shadow-md transition" onclick="showSection('seasons')">
-                        <div class="card-body">
-                            <div class="flex items-center gap-4">
-                                <div class="w-12 h-12 bg-blue rounded-lg flex items-center justify-center">
-                                    <span class="text-white text-xl">🏆</span>
-                                </div>
-                                <div>
-                                    <h3 class="font-semibold text-lg">Manage Seasons</h3>
-                                    <p class="text-gray-600 text-sm">Create and manage seasons</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card cursor-pointer hover:shadow-md transition" onclick="showSection('matches')">
-                        <div class="card-body">
-                            <div class="flex items-center gap-4">
-                                <div class="w-12 h-12 bg-red rounded-lg flex items-center justify-center">
-                                    <span class="text-white text-xl">⚽</span>
-                                </div>
-                                <div>
-                                    <h3 class="font-semibold text-lg">Manage Matches</h3>
-                                    <p class="text-gray-600 text-sm">Schedule and record matches</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card cursor-pointer hover:shadow-md transition" onclick="showSection('logs')">
-                        <div class="card-body">
-                            <div class="flex items-center gap-4">
-                                <div class="w-12 h-12 bg-gray-600 rounded-lg flex items-center justify-center">
-                                    <span class="text-white text-xl">📋</span>
-                                </div>
-                                <div>
-                                    <h3 class="font-semibold text-lg">System Logs</h3>
-                                    <p class="text-gray-600 text-sm">View system activity</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card">
-                        <div class="card-body">
-                            <div class="flex items-center gap-4">
-                                <div class="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
-                                    <span class="text-gray-500 text-xl">📊</span>
-                                </div>
-                                <div>
-                                    <h3 class="font-semibold text-lg">Reports</h3>
-                                    <p class="text-gray-600 text-sm">Coming soon...</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card">
-                        <div class="card-body">
-                            <div class="flex items-center gap-4">
-                                <div class="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
-                                    <span class="text-gray-500 text-xl">⚙️</span>
-                                </div>
-                                <div>
-                                    <h3 class="font-semibold text-lg">Settings</h3>
-                                    <p class="text-gray-600 text-sm">Coming soon...</p>
-                                </div>
-                            </div>
-                        </div>
+                <div id="overviewContent" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="card text-center py-8">
+                        <div class="spinner mx-auto mb-4"></div>
+                        <p class="text-gray-600">Loading overview...</p>
                     </div>
                 </div>
             </div>
 
-             Players Section 
             <div id="players" class="section hidden">
                 <div class="mb-6">
                     <h2 class="text-2xl font-bold text-black mb-2">Player Management</h2>
-                    <p class="text-gray-600">Manage player registrations and information</p>
+                    <p class="text-gray-600">View and manage player registrations</p>
                 </div>
                 <div id="playersContent">
                     <div class="text-center py-8">
@@ -197,7 +83,6 @@
                 </div>
             </div>
 
-            
             <div id="seasons" class="section hidden">
                 <div class="mb-6">
                     <h2 class="text-2xl font-bold text-black mb-2">Season Management</h2>
@@ -211,7 +96,6 @@
                 </div>
             </div>
 
-             
             <div id="matches" class="section hidden">
                 <div class="mb-6">
                     <h2 class="text-2xl font-bold text-black mb-2">Match Management</h2>
@@ -225,7 +109,6 @@
                 </div>
             </div>
 
-             
             <div id="logs" class="section hidden">
                 <div class="mb-6">
                     <h2 class="text-2xl font-bold text-black mb-2">System Logs</h2>

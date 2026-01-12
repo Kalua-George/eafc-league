@@ -1,8 +1,9 @@
 <?php
 session_start();
 header("Content-Type: application/json");
+
 require __DIR__ . "/../connect.php";
-require __DIR__ . "/../systemlogs/logger.php"; // log_action()
+require __DIR__ . "/../systemlogs/logger.php";
 
 $admin_id = $_SESSION['admin_id'] ?? null;
 
@@ -13,58 +14,107 @@ if (!$admin_id) {
 }
 
 $data = json_decode(file_get_contents("php://input"), true);
-$player_id = intval($data['player_id'] ?? 0);
-$action = strtolower(trim($data['action'] ?? ''));
 
-if (!$player_id || !in_array($action, ['approve','reject'])) {
+$player_id = isset($data['player_id']) ? (int)$data['player_id'] : 0;
+$action    = isset($data['action']) ? strtolower(trim($data['action'])) : '';
+
+if ($player_id <= 0 || !in_array($action, ['approve', 'reject'], true)) {
+    log_action($pdo, $admin_id, 'update_player_status', 'players', $player_id, 'failed', 'Invalid input');
     echo json_encode(["error" => "Invalid input"]);
-    log_action($pdo, $admin_id, 'update_player_status', 'player', $player_id, 'failed', 'Invalid input');
     exit();
 }
 
-$status = $action === 'approve' ? 'approved' : 'rejected';
+$newStatus = $action === 'approve' ? 'approved' : 'rejected';
 
 try {
-    // Check if player exists
-    $stmtCheck = $pdo->prepare("SELECT id, status FROM players WHERE id = ?");
-    $stmtCheck->execute([$player_id]);
-    $player = $stmtCheck->fetch(PDO::FETCH_ASSOC);
+    $pdo->beginTransaction();
+
+    // Lock row for update
+    $stmt = $pdo->prepare("
+        SELECT id, status
+        FROM players
+        WHERE id = ?
+        FOR UPDATE
+    ");
+    $stmt->execute([$player_id]);
+    $player = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$player) {
-        log__action($pdo, $admin_id, 'update_player_status', 'player', $player_id, 'failed', 'Player not found');
+        $pdo->rollBack();
+        log_action($pdo, $admin_id, 'update_player_status', 'players', $player_id, 'failed', 'Player not found');
         echo json_encode(["error" => "Player not found"]);
         exit();
     }
 
-    // Prevent duplicate action
-    if ($player['status'] === $status) {
-        log_action($pdo, $admin_id, 'update_player_status', 'player', $player_id, 'failed', "Player already $status");
-        echo json_encode(["error" => "Player already $status"]);
+    // Prevent redundant update
+    if ($player['status'] === $newStatus) {
+        $pdo->rollBack();
+        log_action(
+            $pdo,
+            $admin_id,
+            'update_player_status',
+            'players',
+            $player_id,
+            'failed',
+            "Player already {$newStatus}"
+        );
+        echo json_encode(["error" => "Player already {$newStatus}"]);
         exit();
     }
 
-    // Update player status
-    $stmt = $pdo->prepare("UPDATE players SET status = ? WHERE id = ?");
-    $stmt->execute([$status, $player_id]);
+    // Optional rule: only allow pending → approved/rejected
+    if ($player['status'] !== 'pending') {
+        $pdo->rollBack();
+        log_action(
+            $pdo,
+            $admin_id,
+            'update_player_status',
+            'players',
+            $player_id,
+            'failed',
+            "Invalid status transition from {$player['status']}"
+        );
+        echo json_encode(["error" => "Cannot change status from {$player['status']}"]);
+        exit();
+    }
+
+    // Update status
+    $update = $pdo->prepare("UPDATE players SET status = ? WHERE id = ?");
+    $update->execute([$newStatus, $player_id]);
 
     log_action(
         $pdo,
         $admin_id,
         'update_player_status',
-        'player',
+        'players',
         $player_id,
         'success',
-        "Player status set to $status"
+        "Player status changed to {$newStatus}"
     );
 
+    $pdo->commit();
+
     echo json_encode([
-        "success" => true,
-        "message" => "Player registration $status successfully",
+        "success"   => true,
         "player_id" => $player_id,
-        "status" => $status
+        "status"    => $newStatus,
+        "message"   => "Player {$newStatus} successfully"
     ]);
 
 } catch (Exception $e) {
-    log_action($pdo, $admin_id, 'update_player_status', 'player', $player_id, 'failed', $e->getMessage());
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
+
+    log_action(
+        $pdo,
+        $admin_id,
+        'update_player_status',
+        'players',
+        $player_id,
+        'failed',
+        $e->getMessage()
+    );
+
     echo json_encode(["error" => "Failed to update player status"]);
 }
