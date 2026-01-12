@@ -1,4 +1,9 @@
+<<<<<<< Updated upstream:api/matches/standings.php
 <?php
+=======
+
+ <?php
+>>>>>>> Stashed changes:api/matches/stats.php
 session_start();
 require __DIR__ . "/../connect.php";
 require __DIR__ . "/../systemlogs/logger.php"; // log_admin_action()
