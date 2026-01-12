@@ -1,19 +1,6 @@
-<<<<<<< HEAD:api/matches/standings.php
-<<<<<<< Updated upstream:api/matches/standings.php
-<?php
-=======
 
- <?php
->>>>>>> Stashed changes:api/matches/stats.php
-=======
-from the tree the standings.php file has been changed to stats.php and then
-here the file should return the following
-1. season standings
-2. season top goal scorer/s
-3. most clean sheets
- standings .php is below
- <?php
->>>>>>> main:api/matches/stats.php
+<?php
+ 
 session_start();
 require __DIR__ . "/../connect.php";
 require __DIR__ . "/../systemlogs/logger.php"; // log_action()
