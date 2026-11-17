@@ -1,24 +1,19 @@
 // Season Management System for EAFC League Admin Dashboard
 
-// Initialize season management when loaded
 document.addEventListener("DOMContentLoaded", () => {
-  // Only initialize if we're on the dashboard page
   if (document.getElementById("seasonsContent")) {
     initSeasonManagement()
   }
 })
 
 function initSeasonManagement() {
-  // Set up modals
   setupSeasonModals()
 }
 
-// Load seasons table
 async function loadSeasons() {
   const container = document.getElementById("seasonsContent")
   if (!container) return
 
-  // Show loading state
   container.innerHTML = `
     <div class="text-center py-8">
       <div class="spinner mx-auto mb-4"></div>
@@ -27,26 +22,28 @@ async function loadSeasons() {
   `
 
   try {
-    const response = await fetch("../api/seasons/get_seasons.php")
-    const data = await response.json()
+    const data = await window.EAFC.apiCall("/seasons")
 
-    if (!data.success || !data.seasons || data.seasons.length === 0) {
+    if (!data.success) {
+      throw new Error(data.error || "Failed to load seasons")
+    }
+
+    const seasons = data.seasons || []
+
+    if (!seasons.length) {
       renderEmptySeasons()
       return
     }
 
-    const seasons = data.seasons
     renderSeasonsTable(seasons)
   } catch (error) {
     console.error("Failed to load seasons:", error)
     container.innerHTML = `
       <div class="card">
         <div class="card-body text-center">
-          <div class="text-red mb-4">
-            <span class="text-4xl">⚠️</span>
-          </div>
+          <div class="text-red mb-4"><span class="text-4xl">⚠️</span></div>
           <h3 class="text-lg font-semibold text-red mb-2">Failed to Load Seasons</h3>
-          <p class="text-gray-600 mb-4">${error.message}</p>
+          <p class="text-gray-600 mb-4">${escapeHtml(error.message)}</p>
           <button onclick="loadSeasons()" class="btn btn-primary">Try Again</button>
         </div>
       </div>
@@ -63,17 +60,13 @@ function renderEmptySeasons() {
           <h3 class="text-lg font-semibold">Add New Season</h3>
         </div>
         <div class="card-body">
-          <button onclick="openAddSeasonModal()" class="btn btn-primary">
-            + Create First Season
-          </button>
+          <button onclick="openAddSeasonModal()" class="btn btn-primary">+ Create First Season</button>
         </div>
       </div>
-      
+
       <div class="card">
         <div class="card-body text-center">
-          <div class="text-gray-400 mb-4">
-            <span class="text-4xl">🏆</span>
-          </div>
+          <div class="text-gray-400 mb-4"><span class="text-4xl">🏆</span></div>
           <h3 class="text-lg font-semibold text-gray-700 mb-2">No Seasons Found</h3>
           <p class="text-gray-600">Create your first season to get started.</p>
         </div>
@@ -84,30 +77,23 @@ function renderEmptySeasons() {
 
 function renderSeasonsTable(seasons) {
   const container = document.getElementById("seasonsContent")
-  const currentSeasonId = seasons[0]?.id // Latest season is first
 
-  const html = `
+  container.innerHTML = `
     <div class="flex flex-col gap-6">
-       Add Season Section 
       <div class="card">
         <div class="card-header">
           <div class="flex items-center justify-between">
             <h3 class="text-lg font-semibold">Add New Season</h3>
-            <button onclick="openAddSeasonModal()" class="btn btn-primary">
-              + Add Season
-            </button>
+            <button onclick="openAddSeasonModal()" class="btn btn-primary">+ Add Season</button>
           </div>
         </div>
       </div>
 
-       Seasons Table 
       <div class="card">
         <div class="card-header">
           <div class="flex items-center justify-between">
             <h3 class="text-lg font-semibold">Seasons (${seasons.length})</h3>
-            <button onclick="loadSeasons()" class="btn btn-outline btn-sm">
-              🔄 Refresh
-            </button>
+            <button onclick="loadSeasons()" class="btn btn-outline btn-sm">🔄 Refresh</button>
           </div>
         </div>
         <div class="card-body p-0">
@@ -124,7 +110,7 @@ function renderSeasonsTable(seasons) {
                 </tr>
               </thead>
               <tbody>
-                ${seasons.map((season) => renderSeasonRow(season, currentSeasonId)).join("")}
+                ${seasons.map((season) => renderSeasonRow(season)).join("")}
               </tbody>
             </table>
           </div>
@@ -132,60 +118,36 @@ function renderSeasonsTable(seasons) {
       </div>
     </div>
   `
-
-  container.innerHTML = html
 }
 
-function renderSeasonRow(season, currentSeasonId) {
-  const statusBadge = getSeasonStatusBadge(season)
-  const isCurrent = season.id === currentSeasonId
-
+function renderSeasonRow(season) {
   return `
     <tr id="season-${season.id}">
       <td class="font-mono text-sm">#${season.id}</td>
-      <td class="font-semibold">
-        ${escapeHtml(season.name)}
-        ${isCurrent ? '<span class="badge badge-info ml-2">Current</span>' : ""}
-      </td>
+      <td class="font-semibold">${escapeHtml(season.name)}</td>
       <td class="text-sm">${formatDate(season.start_date)}</td>
       <td class="text-sm">${formatDate(season.end_date)}</td>
-      <td>${statusBadge}</td>
+      <td>${getSeasonStatusBadge(season.status)}</td>
       <td>
-        <div class="flex gap-2">
-          ${
-            isCurrent
-              ? `
-            <button onclick="editSeason(${season.id})" class="btn btn-outline btn-sm">
-              Edit
-            </button>
-          `
-              : `
-            <button onclick="viewSeasonRankings(${season.id})" class="btn btn-secondary btn-sm">
-              View Rankings
-            </button>
-          `
-          }
-        </div>
+        <button onclick="viewSeasonReport(${season.id})" class="btn btn-secondary btn-sm">View Report</button>
       </td>
     </tr>
   `
 }
 
-function getSeasonStatusBadge(season) {
-  const today = new Date()
-  const startDate = new Date(season.start_date)
-  const endDate = new Date(season.end_date)
-
-  if (today < startDate) {
-    return '<span class="badge badge-warning">Upcoming</span>'
-  } else if (today >= startDate && today <= endDate) {
-    return '<span class="badge badge-success">Active</span>'
-  } else {
-    return '<span class="badge badge-info">Completed</span>'
+function getSeasonStatusBadge(status) {
+  switch (status) {
+    case "current":
+      return '<span class="badge badge-success">Current</span>'
+    case "pending":
+      return '<span class="badge badge-warning">Pending</span>'
+    case "ended":
+      return '<span class="badge badge-info">Ended</span>'
+    default:
+      return '<span class="badge badge-info">Unknown</span>'
   }
 }
 
-// Add season modal
 function openAddSeasonModal() {
   const modalHtml = `
     <div id="addSeasonModal" class="modal show">
@@ -198,48 +160,15 @@ function openAddSeasonModal() {
           <form id="addSeasonForm">
             <div class="form-group">
               <label for="seasonName" class="form-label">Season Name *</label>
-              <input 
-                type="text" 
-                id="seasonName" 
-                name="name" 
-                class="form-input" 
-                required
-                placeholder="e.g., Season 2024"
-                maxlength="100"
-              >
-            </div>
-            <div class="form-group">
-              <label for="seasonYear" class="form-label">Year *</label>
-              <input 
-                type="number" 
-                id="seasonYear" 
-                name="year" 
-                class="form-input" 
-                required
-                min="2020"
-                max="2030"
-                value="${new Date().getFullYear()}"
-              >
+              <input type="text" id="seasonName" name="name" class="form-input" required maxlength="100" />
             </div>
             <div class="form-group">
               <label for="seasonStart" class="form-label">Start Date *</label>
-              <input 
-                type="date" 
-                id="seasonStart" 
-                name="start_date" 
-                class="form-input" 
-                required
-              >
+              <input type="date" id="seasonStart" name="start_date" class="form-input" required />
             </div>
             <div class="form-group">
               <label for="seasonEnd" class="form-label">End Date *</label>
-              <input 
-                type="date" 
-                id="seasonEnd" 
-                name="end_date" 
-                class="form-input" 
-                required
-              >
+              <input type="date" id="seasonEnd" name="end_date" class="form-input" required />
             </div>
           </form>
         </div>
@@ -254,24 +183,19 @@ function openAddSeasonModal() {
     </div>
   `
 
-  // Remove existing modal if any
   const existingModal = document.getElementById("addSeasonModal")
   if (existingModal) {
     existingModal.remove()
   }
 
-  // Add modal to page
   document.body.insertAdjacentHTML("beforeend", modalHtml)
 
-  // Set default dates
   const today = new Date()
   const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1)
   const endOfYear = new Date(today.getFullYear(), 11, 31)
-
   document.getElementById("seasonStart").value = nextMonth.toISOString().split("T")[0]
   document.getElementById("seasonEnd").value = endOfYear.toISOString().split("T")[0]
 
-  // Focus first input
   document.getElementById("seasonName").focus()
 }
 
@@ -288,224 +212,67 @@ async function submitAddSeason() {
   const btnText = document.getElementById("addSeasonText")
   const spinner = document.getElementById("addSeasonSpinner")
 
-  // Get form data
   const formData = new FormData(form)
-  const seasonData = {
-    name: formData.get("name").trim(),
-    year: formData.get("year"),
-    start_date: formData.get("start_date"),
-    end_date: formData.get("end_date"),
+  const payload = {
+    name: String(formData.get("name") || "").trim(),
+    start_date: String(formData.get("start_date") || ""),
+    end_date: String(formData.get("end_date") || ""),
   }
 
-  // Validate
-  if (!seasonData.name || !seasonData.start_date || !seasonData.end_date) {
-    if (window.EAFC && window.EAFC.showAlert) {
-      window.EAFC.showAlert("Please fill in all required fields", "warning")
-    }
+  if (!payload.name || !payload.start_date || !payload.end_date) {
+    window.EAFC.showAlert("Please fill in all required fields", "warning")
     return
   }
 
-  // Validate dates
-  const startDate = new Date(seasonData.start_date)
-  const endDate = new Date(seasonData.end_date)
-
-  if (endDate <= startDate) {
-    if (window.EAFC && window.EAFC.showAlert) {
-      window.EAFC.showAlert("End date must be after start date", "warning")
-    }
+  if (new Date(payload.end_date) <= new Date(payload.start_date)) {
+    window.EAFC.showAlert("End date must be after start date", "warning")
     return
   }
 
-  // Show loading
   btn.disabled = true
   btnText.textContent = "Adding..."
   spinner.classList.remove("hidden")
 
   try {
-    const response = await fetch("../api/seasons/add_season.php", {
+    const data = await window.EAFC.apiCall("/seasons", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(seasonData),
+      body: JSON.stringify(payload),
     })
 
-    const data = await response.json()
-
-    if (data.success) {
-      if (window.EAFC && window.EAFC.showAlert) {
-        window.EAFC.showAlert(data.message || "Season added successfully", "success")
-      }
-
-      closeAddSeasonModal()
-      loadSeasons() // Refresh the table
-
-      // Refresh overview stats
-      if (window.loadOverviewStats) {
-        window.loadOverviewStats()
-      }
-    } else {
+    if (!data.success) {
       throw new Error(data.error || "Failed to add season")
+    }
+
+    window.EAFC.showAlert(data.message || "Season added successfully", "success")
+    closeAddSeasonModal()
+    loadSeasons()
+
+    if (window.loadOverviewStats) {
+      window.loadOverviewStats()
     }
   } catch (error) {
     console.error("Failed to add season:", error)
-    if (window.EAFC && window.EAFC.showAlert) {
-      window.EAFC.showAlert(error.message, "error")
-    }
+    window.EAFC.showAlert(error.message, "error")
   } finally {
-    // Reset button
     btn.disabled = false
     btnText.textContent = "Add Season"
     spinner.classList.add("hidden")
   }
 }
 
-// Edit season functionality
-function editSeason(seasonId) {
-  const row = document.getElementById(`season-${seasonId}`)
-  if (!row) return
-
-  const endDate = row.children[3].textContent
-
-  const modalHtml = `
-    <div id="editSeasonModal" class="modal show">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h3 class="modal-title">Edit Current Season</h3>
-          <button class="modal-close" onclick="closeEditSeasonModal()">&times;</button>
-        </div>
-        <div class="modal-body">
-          <form id="editSeasonForm">
-            <input type="hidden" id="editSeasonId" value="${seasonId}">
-            <div class="form-group">
-              <label class="form-label">Season Name</label>
-              <input 
-                type="text" 
-                class="form-input" 
-                value="${escapeHtml(row.children[1].textContent.replace(/Current$/, "").trim())}"
-                disabled
-              >
-              <small class="text-gray-600">Season name cannot be changed</small>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Start Date</label>
-              <input 
-                type="date" 
-                class="form-input" 
-                value="${row.children[2].textContent}"
-                disabled
-              >
-              <small class="text-gray-600">Start date cannot be changed</small>
-            </div>
-            <div class="form-group">
-              <label for="editSeasonEnd" class="form-label">End Date *</label>
-              <input 
-                type="date" 
-                id="editSeasonEnd" 
-                name="end_date" 
-                class="form-input" 
-                required
-                value="${endDate}"
-              >
-              <small class="text-gray-600">Only end date can be modified</small>
-            </div>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button onclick="closeEditSeasonModal()" class="btn btn-outline">Cancel</button>
-          <button onclick="submitEditSeason()" class="btn btn-primary" id="editSeasonBtn">
-            <span id="editSeasonText">Save Changes</span>
-            <div id="editSeasonSpinner" class="spinner hidden"></div>
-          </button>
-        </div>
-      </div>
-    </div>
-  `
-
-  // Remove existing modal if any
-  const existingModal = document.getElementById("editSeasonModal")
-  if (existingModal) {
-    existingModal.remove()
-  }
-
-  // Add modal to page
-  document.body.insertAdjacentHTML("beforeend", modalHtml)
-
-  // Focus end date input
-  document.getElementById("editSeasonEnd").focus()
-}
-
-function closeEditSeasonModal() {
-  const modal = document.getElementById("editSeasonModal")
-  if (modal) {
-    modal.remove()
-  }
-}
-
-async function submitEditSeason() {
-  const btn = document.getElementById("editSeasonBtn")
-  const btnText = document.getElementById("editSeasonText")
-  const spinner = document.getElementById("editSeasonSpinner")
-
-  const seasonId = document.getElementById("editSeasonId").value
-  const endDate = document.getElementById("editSeasonEnd").value
-
-  if (!endDate) {
-    if (window.EAFC && window.EAFC.showAlert) {
-      window.EAFC.showAlert("Please select an end date", "warning")
-    }
-    return
-  }
-
-  // Show loading
-  btn.disabled = true
-  btnText.textContent = "Saving..."
-  spinner.classList.remove("hidden")
-
-  try {
-    const response = await fetch("../api/seasons/edit_season.php", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ season_id: seasonId, end_date: endDate }),
-    })
-
-    const data = await response.json()
-
-    if (data.success) {
-      if (window.EAFC && window.EAFC.showAlert) {
-        window.EAFC.showAlert(data.message || "Season updated successfully", "success")
-      }
-
-      closeEditSeasonModal()
-      loadSeasons() // Refresh the table
-    } else {
-      throw new Error(data.error || "Failed to update season")
-    }
-  } catch (error) {
-    console.error("Failed to update season:", error)
-    if (window.EAFC && window.EAFC.showAlert) {
-      window.EAFC.showAlert(error.message, "error")
-    }
-  } finally {
-    // Reset button
-    btn.disabled = false
-    btnText.textContent = "Save Changes"
-    spinner.classList.add("hidden")
-  }
-}
-
-// View season rankings
-async function viewSeasonRankings(seasonId) {
+async function viewSeasonReport(seasonId) {
   const modalHtml = `
     <div id="viewSeasonModal" class="modal show">
-      <div class="modal-content" style="max-width: 800px;">
+      <div class="modal-content" style="max-width: 860px;">
         <div class="modal-header">
-          <h3 class="modal-title">Season Rankings</h3>
+          <h3 class="modal-title">Season Report</h3>
           <button class="modal-close" onclick="closeViewSeasonModal()">&times;</button>
         </div>
         <div class="modal-body">
-          <div id="seasonRankingsContent">
+          <div id="seasonReportContent">
             <div class="text-center py-8">
               <div class="spinner mx-auto mb-4"></div>
-              <p class="text-gray-600">Loading rankings...</p>
+              <p class="text-gray-600">Loading report...</p>
             </div>
           </div>
         </div>
@@ -513,76 +280,72 @@ async function viewSeasonRankings(seasonId) {
     </div>
   `
 
-  // Remove existing modal if any
   const existingModal = document.getElementById("viewSeasonModal")
   if (existingModal) {
     existingModal.remove()
   }
 
-  // Add modal to page
   document.body.insertAdjacentHTML("beforeend", modalHtml)
 
-  // Load rankings
   try {
-    const response = await fetch(`../api/matches/standings.php?season_id=${seasonId}`)
-    const rankings = await response.json()
-
-    const content = document.getElementById("seasonRankingsContent")
-
-    if (!rankings || rankings.length === 0) {
-      content.innerHTML = `
-        <div class="text-center py-8">
-          <div class="text-gray-400 mb-4">
-            <span class="text-4xl">📊</span>
-          </div>
-          <h3 class="text-lg font-semibold text-gray-700 mb-2">No Rankings Available</h3>
-          <p class="text-gray-600">No match results found for this season.</p>
-        </div>
-      `
-      return
+    const data = await window.EAFC.apiCall(`/reports/season?season_id=${seasonId}`)
+    if (!data.success || !data.report) {
+      throw new Error(data.error || "Failed to load season report")
     }
 
-    const html = `
-      <div class="overflow-auto">
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Rank</th>
-              <th>Team</th>
-              <th>Points</th>
-              <th>Matches</th>
-              <th>W-D-L</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${rankings
-              .map(
-                (r, index) => `
+    const report = data.report
+    const standings = report.standings || []
+    const container = document.getElementById("seasonReportContent")
+
+    container.innerHTML = `
+      <div class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div class="card"><div class="card-body"><p class="text-sm text-gray-600">Winner</p><p class="font-semibold">${escapeHtml(report.winner || "N/A")}</p></div></div>
+          <div class="card"><div class="card-body"><p class="text-sm text-gray-600">Top Scorer</p><p class="font-semibold">${escapeHtml(report.top_scorer || "N/A")}</p></div></div>
+          <div class="card"><div class="card-body"><p class="text-sm text-gray-600">Most Clean Sheets</p><p class="font-semibold">${escapeHtml(report.most_clean_sheets || "N/A")}</p></div></div>
+        </div>
+
+        <div class="overflow-auto">
+          <table class="table">
+            <thead>
               <tr>
-                <td class="font-bold">${index + 1}</td>
-                <td class="font-semibold">${escapeHtml(r.team_name || r.gamer_tag)}</td>
-                <td class="font-bold text-green">${r.points || 0}</td>
-                <td>${r.matches_played || 0}</td>
-                <td class="text-sm">${r.wins || 0}-${r.draws || 0}-${r.losses || 0}</td>
+                <th>Rank</th>
+                <th>Gamer Tag</th>
+                <th>Points</th>
+                <th>W-D-L</th>
+                <th>GF</th>
+                <th>GA</th>
+                <th>GD</th>
               </tr>
-            `,
-              )
-              .join("")}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              ${standings
+                .map(
+                  (row, idx) => `
+                <tr>
+                  <td>${idx + 1}</td>
+                  <td class="font-semibold">${escapeHtml(row.gamer_tag)}</td>
+                  <td class="font-semibold text-green">${Number(row.points || 0)}</td>
+                  <td>${Number(row.wins || 0)}-${Number(row.draws || 0)}-${Number(row.losses || 0)}</td>
+                  <td>${Number(row.goals_for || 0)}</td>
+                  <td>${Number(row.goals_against || 0)}</td>
+                  <td>${Number(row.goal_diff || 0)}</td>
+                </tr>
+              `,
+                )
+                .join("")}
+            </tbody>
+          </table>
+        </div>
       </div>
     `
-
-    content.innerHTML = html
   } catch (error) {
-    console.error("Failed to load rankings:", error)
-    document.getElementById("seasonRankingsContent").innerHTML = `
+    console.error("Failed to load report:", error)
+    document.getElementById("seasonReportContent").innerHTML = `
       <div class="text-center py-8">
-        <div class="text-red mb-4">
-          <span class="text-4xl">⚠️</span>
-        </div>
-        <h3 class="text-lg font-semibold text-red mb-2">Failed to Load Rankings</h3>
-        <p class="text-gray-600">${error.message}</p>
+        <div class="text-red mb-4"><span class="text-4xl">⚠️</span></div>
+        <h3 class="text-lg font-semibold text-red mb-2">Failed to Load Report</h3>
+        <p class="text-gray-600">${escapeHtml(error.message)}</p>
       </div>
     `
   }
@@ -595,15 +358,13 @@ function closeViewSeasonModal() {
   }
 }
 
-// Setup season modals
 function setupSeasonModals() {
-  // Modals are created dynamically, no setup needed
+  // Modals are created dynamically.
 }
 
-// Utility functions
 function escapeHtml(text) {
   const div = document.createElement("div")
-  div.textContent = text
+  div.textContent = text == null ? "" : String(text)
   return div.innerHTML
 }
 
@@ -617,13 +378,9 @@ function formatDate(dateString) {
   })
 }
 
-// Export functions for global access
 window.loadSeasons = loadSeasons
-window.editSeason = editSeason
-window.viewSeasonRankings = viewSeasonRankings
 window.openAddSeasonModal = openAddSeasonModal
 window.closeAddSeasonModal = closeAddSeasonModal
 window.submitAddSeason = submitAddSeason
-window.closeEditSeasonModal = closeEditSeasonModal
-window.submitEditSeason = submitEditSeason
+window.viewSeasonReport = viewSeasonReport
 window.closeViewSeasonModal = closeViewSeasonModal

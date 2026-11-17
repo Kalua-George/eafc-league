@@ -1,17 +1,45 @@
 // Utility functions for EAFC League Management System
 
-// API base URL - 
-const API_BASE_URL = "../api/"
+// Runtime configuration injected by the Blade layout (resources/views/layouts/app.blade.php)
+const EAFC_RUNTIME = window.EAFC_CONFIG || { apiBase: "/api", routes: { home: "/", login: "/login", dashboard: "/dashboard" }, admin: null }
+
+// API base URL (Laravel routes under /api)
+const API_BASE_URL = EAFC_RUNTIME.apiBase
+
+function buildApiUrl(endpoint) {
+  const normalized = String(endpoint || "").trim()
+
+  if (!normalized) {
+    throw new Error("API endpoint is required")
+  }
+
+  // Allow absolute URLs when needed.
+  if (/^https?:\/\//i.test(normalized)) {
+    return normalized
+  }
+
+  return `${API_BASE_URL}${normalized.startsWith("/") ? normalized : `/${normalized}`}`
+}
+
+function csrfToken() {
+  const meta = document.querySelector('meta[name="csrf-token"]')
+  return meta ? meta.getAttribute("content") : ""
+}
 
 // Utility function to make API call
 async function apiCall(endpoint, options = {}) {
-  const url = `${API_BASE_URL}${endpoint}`
+  const url = buildApiUrl(endpoint)
   const config = {
+    credentials: "same-origin",
+    ...options,
+    method: options.method || "GET",
     headers: {
       "Content-Type": "application/json",
+      Accept: "application/json",
+      "X-Requested-With": "XMLHttpRequest",
+      "X-CSRF-TOKEN": csrfToken(),
       ...options.headers,
     },
-    ...options,
   }
 
   try {
@@ -20,11 +48,21 @@ async function apiCall(endpoint, options = {}) {
     const contentType = response.headers.get("content-type")
 
     if (!response.ok) {
-      // 
-      if (contentType && contentType.includes("text/html")) {
-        throw new Error(`API endpoint not found: ${url}. Please check your PHP backend is running.`)
+      // An expired admin session: send the admin back to the login page.
+      if (response.status === 401 && EAFC_RUNTIME.admin) {
+        window.location.href = EAFC_RUNTIME.routes.login
       }
-      throw new Error(`HTTP error! status: ${response.status}`)
+
+      if (contentType && contentType.includes("text/html")) {
+        throw new Error(`API endpoint not found: ${url}. Please check the Laravel backend is running.`)
+      }
+
+      let message = `HTTP error! status: ${response.status}`
+      if (contentType && contentType.includes("application/json")) {
+        const body = await response.json().catch(() => null)
+        if (body && body.error) message = body.error
+      }
+      throw new Error(message)
     }
 
     // Check if response is actually JSON
@@ -298,14 +336,15 @@ function clearSession() {
 }
 
 // Check if user is logged in (admin)
+// The server is the source of truth: the Blade layout injects the signed-in admin (or null).
 function isLoggedIn() {
-  return getSession("admin_logged_in") === true
+  return Boolean(EAFC_RUNTIME.admin)
 }
 
 // Redirect to login if not authenticated
 function requireAuth() {
   if (!isLoggedIn()) {
-    window.location.href = "login.html"
+    window.location.href = EAFC_RUNTIME.routes.login
     return false
   }
   return true
@@ -314,7 +353,7 @@ function requireAuth() {
 // Logout function
 function logout() {
   clearSession()
-  window.location.href = "login.html"
+  window.location.href = EAFC_RUNTIME.routes.login
 }
 
 // Initialize page

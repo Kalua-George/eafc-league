@@ -1,27 +1,20 @@
 // Player Management System for EAFC League Admin Dashboard
 
-// Initialize player management when loaded
 document.addEventListener("DOMContentLoaded", () => {
-  // Only initialize if we're on the dashboard page
   if (document.getElementById("playersContent")) {
     initPlayerManagement()
   }
 })
 
 function initPlayerManagement() {
-  // Set up add player form
   setupAddPlayerForm()
-
-  // Set up modals
   setupPlayerModals()
 }
 
-// Load players table
 async function loadPlayers() {
   const container = document.getElementById("playersContent")
   if (!container) return
 
-  // Show loading state
   container.innerHTML = `
     <div class="text-center py-8">
       <div class="spinner mx-auto mb-4"></div>
@@ -30,22 +23,13 @@ async function loadPlayers() {
   `
 
   try {
-    const response = await fetch("../api/players/get_players.php")
-    const text = await response.text()
+    const data = await window.EAFC.apiCall("/players")
 
-    let data
-    try {
-      data = JSON.parse(text)
-    } catch (parseError) {
-      throw new Error("Invalid server response")
+    if (!data.success) {
+      throw new Error(data.error || "Failed to load players")
     }
 
-    if (data.error) {
-      throw new Error(data.error)
-    }
-
-    const players = data.players || data || []
-    renderPlayersTable(players)
+    renderPlayersTable(data.players || [])
   } catch (error) {
     console.error("Failed to load players:", error)
     container.innerHTML = `
@@ -55,17 +39,18 @@ async function loadPlayers() {
             <span class="text-4xl">⚠️</span>
           </div>
           <h3 class="text-lg font-semibold text-red mb-2">Failed to Load Players</h3>
-          <p class="text-gray-600 mb-4">${error.message}</p>
+          <p class="text-gray-600 mb-4">${escapeHtml(error.message)}</p>
           <button onclick="loadPlayers()" class="btn btn-primary">Try Again</button>
         </div>
       </div>
     `
   }
 }
+
 function renderPlayersTable(players) {
   const container = document.getElementById("playersContent")
 
-  if (players.length === 0) {
+  if (!players.length) {
     container.innerHTML = `
       <div class="card">
         <div class="card-body text-center">
@@ -81,30 +66,22 @@ function renderPlayersTable(players) {
     return
   }
 
-  const html = `
+  container.innerHTML = `
     <div class="flex flex-col gap-6">
-       <!-- Add Player Section -->
       <div class="card">
         <div class="card-header">
           <div class="flex items-center justify-between">
             <h3 class="text-lg font-semibold">Add New Player</h3>
-            <button onclick="openAddPlayerModal()" class="btn btn-primary">
-              <span>+ Add Player</span>
-            </button>
+            <button onclick="openAddPlayerModal()" class="btn btn-primary">+ Add Player</button>
           </div>
         </div>
       </div>
 
-       <!-- Players Table -->
       <div class="card">
         <div class="card-header">
           <div class="flex items-center justify-between">
             <h3 class="text-lg font-semibold">Players (${players.length})</h3>
-            <div class="flex gap-2">
-              <button onclick="loadPlayers()" class="btn btn-outline btn-sm">
-                <span>🔄 Refresh</span>
-              </button>
-            </div>
+            <button onclick="loadPlayers()" class="btn btn-outline btn-sm">🔄 Refresh</button>
           </div>
         </div>
         <div class="card-body p-0">
@@ -129,26 +106,21 @@ function renderPlayersTable(players) {
       </div>
     </div>
   `
-
-  container.innerHTML = html
 }
 
 function renderPlayerRow(player) {
-  const statusBadge = getStatusBadge(player.status)
-  const registeredDate = player.created_at ? formatDate(player.created_at) : "N/A"
+  const created = player.created_at ? formatDate(player.created_at) : "N/A"
 
   return `
     <tr id="player-${player.id}">
       <td class="font-mono text-sm">#${player.id}</td>
       <td class="font-semibold">${escapeHtml(player.gamer_tag)}</td>
       <td class="font-mono text-sm">${escapeHtml(player.phone)}</td>
-      <td>${statusBadge}</td>
-      <td class="text-sm text-gray-600">${registeredDate}</td>
+      <td>${getStatusBadge(player.status)}</td>
+      <td class="text-sm text-gray-600">${created}</td>
       <td>
         <div class="flex gap-2">
-          <button onclick="editPlayer(${player.id})" class="btn btn-outline btn-sm">
-            Edit
-          </button>
+          <button onclick="editPlayer(${player.id})" class="btn btn-outline btn-sm">Edit</button>
           ${renderStatusActions(player)}
         </div>
       </td>
@@ -156,49 +128,6 @@ function renderPlayerRow(player) {
   `
 }
 
-// HELPER FUNCTIONS (required for the new table format)
-function getStatusBadge(status) {
-  let color = ''
-  switch (status) {
-    case 'approved':
-      color = 'badge-success'
-      break
-    case 'pending':
-      color = 'badge-warning'
-      break
-    case 'rejected':
-      color = 'badge-danger'
-      break
-    default:
-      color = 'badge-secondary'
-  }
-  return `<span class="badge ${color}">${status}</span>`
-}
-
-function renderStatusActions(player) {
-  if (player.status === 'pending') {
-    return `
-      <button class="btn btn-success btn-sm" onclick="approvePlayer(${player.id})">Approve</button>
-      <button class="btn btn-danger btn-sm" onclick="rejectPlayer(${player.id})">Reject</button>
-    `
-  }
-  return ''
-}
-
-function formatDate(dateString) {
-  const date = new Date(dateString)
-  const options = { year: 'numeric', month: 'short', day: 'numeric' }
-  return date.toLocaleDateString('en-US', options)
-}
-
-function escapeHtml(unsafe) {
-  return unsafe
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;")
-}
 function getStatusBadge(status) {
   switch (status) {
     case "approved":
@@ -213,20 +142,16 @@ function getStatusBadge(status) {
 }
 
 function renderStatusActions(player) {
-  if (player.status === "pending") {
-    return `
-      <button onclick="updatePlayerStatus(${player.id}, 'approve')" class="btn btn-primary btn-sm">
-        Approve
-      </button>
-      <button onclick="updatePlayerStatus(${player.id}, 'reject')" class="btn btn-danger btn-sm">
-        Reject
-      </button>
-    `
+  if (player.status !== "pending") {
+    return ""
   }
-  return ""
+
+  return `
+    <button onclick="updatePlayerStatus(${player.id}, 'approve')" class="btn btn-primary btn-sm">Approve</button>
+    <button onclick="updatePlayerStatus(${player.id}, 'reject')" class="btn btn-danger btn-sm">Reject</button>
+  `
 }
 
-// Update player status (approve/reject)
 async function updatePlayerStatus(playerId, action) {
   const actionText = action === "approve" ? "approve" : "reject"
 
@@ -235,40 +160,24 @@ async function updatePlayerStatus(playerId, action) {
   }
 
   try {
-    const response = await fetch("../api/players/approve_reject_player.php", {
+    const data = await window.EAFC.apiCall("/players/status", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ player_id: playerId, action }),
     })
 
-    const text = await response.text()
-    let data
-    try {
-      data = JSON.parse(text)
-    } catch (parseError) {
-      throw new Error("Invalid server response")
+    if (!data.success) {
+      throw new Error(data.error || `Failed to ${actionText} player`)
     }
 
-    if (data.success) {
-      if (window.EAFC && window.EAFC.showAlert) {
-        window.EAFC.showAlert(data.message || `Player ${actionText}d successfully`, "success")
-      }
+    window.EAFC.showAlert(data.message || `Player ${actionText}d successfully`, "success")
+    updatePlayerRowStatus(playerId, data.status || (action === "approve" ? "approved" : "rejected"))
 
-      // Update the row in place
-      updatePlayerRowStatus(playerId, data.status || (action === "approve" ? "approved" : "rejected"))
-
-      // Refresh overview stats
-      if (window.loadOverviewStats) {
-        window.loadOverviewStats()
-      }
-    } else {
-      throw new Error(data.error || `Failed to ${actionText} player`)
+    if (window.loadOverviewStats) {
+      window.loadOverviewStats()
     }
   } catch (error) {
     console.error(`Failed to ${actionText} player:`, error)
-    if (window.EAFC && window.EAFC.showAlert) {
-      window.EAFC.showAlert(error.message, "error")
-    }
+    window.EAFC.showAlert(error.message, "error")
   }
 }
 
@@ -276,19 +185,15 @@ function updatePlayerRowStatus(playerId, newStatus) {
   const row = document.getElementById(`player-${playerId}`)
   if (!row) return
 
-  // Update status badge
-  const statusCell = row.children[3]
-  statusCell.innerHTML = getStatusBadge(newStatus)
+  row.children[3].innerHTML = getStatusBadge(newStatus)
 
-  // Update actions
   const actionsCell = row.children[5]
   const editButton = actionsCell.querySelector('button[onclick*="editPlayer"]')
-  actionsCell.innerHTML = `<div class="flex gap-2">${editButton.outerHTML}</div>`
+  actionsCell.innerHTML = `<div class="flex gap-2">${editButton ? editButton.outerHTML : ""}</div>`
 }
 
-// Setup add player form
 function setupAddPlayerForm() {
-  // Modal will be created dynamically when needed
+  // Modal created dynamically.
 }
 
 function openAddPlayerModal() {
@@ -303,27 +208,11 @@ function openAddPlayerModal() {
           <form id="addPlayerForm">
             <div class="form-group">
               <label for="addGamerTag" class="form-label">Gamer Tag *</label>
-              <input 
-                type="text" 
-                id="addGamerTag" 
-                name="gamer_tag" 
-                class="form-input" 
-                required
-                placeholder="Enter gamer tag"
-                maxlength="50"
-              >
+              <input type="text" id="addGamerTag" name="gamer_tag" class="form-input" required maxlength="50" />
             </div>
             <div class="form-group">
               <label for="addPhone" class="form-label">Phone Number *</label>
-              <input 
-                type="tel" 
-                id="addPhone" 
-                name="phone" 
-                class="form-input" 
-                required
-                placeholder="Enter phone number"
-                maxlength="20"
-              >
+              <input type="tel" id="addPhone" name="phone" class="form-input" required maxlength="20" />
             </div>
           </form>
         </div>
@@ -338,16 +227,12 @@ function openAddPlayerModal() {
     </div>
   `
 
-  // Remove existing modal if any
   const existingModal = document.getElementById("addPlayerModal")
   if (existingModal) {
     existingModal.remove()
   }
 
-  // Add modal to page
   document.body.insertAdjacentHTML("beforeend", modalHtml)
-
-  // Focus first input
   document.getElementById("addGamerTag").focus()
 }
 
@@ -364,68 +249,50 @@ async function submitAddPlayer() {
   const btnText = document.getElementById("addPlayerText")
   const spinner = document.getElementById("addPlayerSpinner")
 
-  // Get form data
   const formData = new FormData(form)
-  const gamerTag = formData.get("gamer_tag").trim()
-  const phone = formData.get("phone").trim()
+  const gamerTag = String(formData.get("gamer_tag") || "").trim()
+  const phone = String(formData.get("phone") || "").trim()
 
-  // Validate
   if (!gamerTag || !phone) {
-    if (window.EAFC && window.EAFC.showAlert) {
-      window.EAFC.showAlert("Please fill in all required fields", "warning")
-    }
+    window.EAFC.showAlert("Please fill in all required fields", "warning")
     return
   }
 
-  // Show loading
   btn.disabled = true
   btnText.textContent = "Adding..."
   spinner.classList.remove("hidden")
 
   try {
-    const response = await fetch("../api/players/add_player.php", {
+    const data = await window.EAFC.apiCall("/players", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ gamer_tag: gamerTag, phone: phone }),
+      body: JSON.stringify({
+        gamer_tag: gamerTag,
+        phone,
+        admin_action: true,
+      }),
     })
 
-    const text = await response.text()
-    let data
-    try {
-      data = JSON.parse(text)
-    } catch (parseError) {
-      throw new Error("Invalid server response")
+    if (!data.success) {
+      throw new Error(data.error || "Failed to add player")
     }
 
-    if (data.success) {
-      if (window.EAFC && window.EAFC.showAlert) {
-        window.EAFC.showAlert(data.message || "Player added successfully", "success")
-      }
+    window.EAFC.showAlert(data.message || "Player added successfully", "success")
+    closeAddPlayerModal()
+    loadPlayers()
 
-      closeAddPlayerModal()
-      loadPlayers() // Refresh the table
-
-      // Refresh overview stats
-      if (window.loadOverviewStats) {
-        window.loadOverviewStats()
-      }
-    } else {
-      throw new Error(data.error || "Failed to add player")
+    if (window.loadOverviewStats) {
+      window.loadOverviewStats()
     }
   } catch (error) {
     console.error("Failed to add player:", error)
-    if (window.EAFC && window.EAFC.showAlert) {
-      window.EAFC.showAlert(error.message, "error")
-    }
+    window.EAFC.showAlert(error.message, "error")
   } finally {
-    // Reset button
     btn.disabled = false
     btnText.textContent = "Add Player"
     spinner.classList.add("hidden")
   }
 }
 
-// Edit player functionality
 function editPlayer(playerId) {
   const row = document.getElementById(`player-${playerId}`)
   if (!row) return
@@ -445,27 +312,11 @@ function editPlayer(playerId) {
             <input type="hidden" id="editPlayerId" value="${playerId}">
             <div class="form-group">
               <label for="editGamerTag" class="form-label">Gamer Tag *</label>
-              <input 
-                type="text" 
-                id="editGamerTag" 
-                name="gamer_tag" 
-                class="form-input" 
-                required
-                value="${escapeHtml(gamerTag)}"
-                maxlength="50"
-              >
+              <input type="text" id="editGamerTag" name="gamer_tag" class="form-input" required maxlength="50" value="${escapeHtml(gamerTag)}">
             </div>
             <div class="form-group">
               <label for="editPhone" class="form-label">Phone Number *</label>
-              <input 
-                type="tel" 
-                id="editPhone" 
-                name="phone" 
-                class="form-input" 
-                required
-                value="${escapeHtml(phone)}"
-                maxlength="20"
-              >
+              <input type="tel" id="editPhone" name="phone" class="form-input" required maxlength="20" value="${escapeHtml(phone)}">
             </div>
           </form>
         </div>
@@ -480,16 +331,12 @@ function editPlayer(playerId) {
     </div>
   `
 
-  // Remove existing modal if any
   const existingModal = document.getElementById("editPlayerModal")
   if (existingModal) {
     existingModal.remove()
   }
 
-  // Add modal to page
   document.body.insertAdjacentHTML("beforeend", modalHtml)
-
-  // Focus first input
   document.getElementById("editGamerTag").focus()
 }
 
@@ -501,74 +348,57 @@ function closeEditPlayerModal() {
 }
 
 async function submitEditPlayer() {
-  const form = document.getElementById("editPlayerForm")
   const btn = document.getElementById("editPlayerBtn")
   const btnText = document.getElementById("editPlayerText")
   const spinner = document.getElementById("editPlayerSpinner")
 
-  // Get form data
   const playerId = document.getElementById("editPlayerId").value
   const gamerTag = document.getElementById("editGamerTag").value.trim()
   const phone = document.getElementById("editPhone").value.trim()
 
-  // Validate
   if (!gamerTag || !phone) {
-    if (window.EAFC && window.EAFC.showAlert) {
-      window.EAFC.showAlert("Please fill in all required fields", "warning")
-    }
+    window.EAFC.showAlert("Please fill in all required fields", "warning")
     return
   }
 
-  // Show loading
   btn.disabled = true
   btnText.textContent = "Saving..."
   spinner.classList.remove("hidden")
 
   try {
-    const response = await fetch("../api/players/edit_player.php", {
+    const data = await window.EAFC.apiCall("/players/edit", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        player_id: playerId,
+        player_id: Number(playerId),
         gamer_tag: gamerTag,
-        phone: phone,
+        phone,
       }),
     })
 
-    const data = await response.json()
-
-    if (data.success) {
-      if (window.EAFC && window.EAFC.showAlert) {
-        window.EAFC.showAlert(data.message || "Player updated successfully", "success")
-      }
-
-      closeEditPlayerModal()
-      loadPlayers() // Refresh the table
-    } else {
+    if (!data.success) {
       throw new Error(data.error || "Failed to update player")
     }
+
+    window.EAFC.showAlert(data.message || "Player updated successfully", "success")
+    closeEditPlayerModal()
+    loadPlayers()
   } catch (error) {
     console.error("Failed to update player:", error)
-    if (window.EAFC && window.EAFC.showAlert) {
-      window.EAFC.showAlert(error.message, "error")
-    }
+    window.EAFC.showAlert(error.message, "error")
   } finally {
-    // Reset button
     btn.disabled = false
     btnText.textContent = "Save Changes"
     spinner.classList.add("hidden")
   }
 }
 
-// Setup player modals
 function setupPlayerModals() {
-  // Modals are created dynamically, no setup needed
+  // Modals are created dynamically.
 }
 
-// Utility functions
 function escapeHtml(text) {
   const div = document.createElement("div")
-  div.textContent = text
+  div.textContent = text == null ? "" : String(text)
   return div.innerHTML
 }
 
@@ -582,7 +412,6 @@ function formatDate(dateString) {
   })
 }
 
-// Export functions for global access
 window.loadPlayers = loadPlayers
 window.editPlayer = editPlayer
 window.updatePlayerStatus = updatePlayerStatus

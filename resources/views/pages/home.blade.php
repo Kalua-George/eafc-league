@@ -1,0 +1,148 @@
+@extends('layouts.app')
+
+@section('title', 'EAFC League - Home')
+
+@section('content')
+<main class="min-h-screen bg-gray-50">
+        <div id="alerts" class="container pt-4"></div>
+
+         
+        <section class="py-16 bg-white">
+            <div class="container">
+                <div class="text-center mb-12">
+                    <h1 class="text-4xl font-bold text-black mb-4">Welcome to EAFC League</h1>
+                    <p class="text-xl text-gray-600 mb-8">The premier EA Sports FC competitive league</p>
+                    
+                    
+                    <div class="card max-w-2xl mx-auto mb-8">
+                        <div class="card-body text-center">
+                            <h2 class="text-2xl font-semibold mb-4">Current Season: <span id="season-name" class="text-green">Loading...</span></h2>
+                            <p class="text-lg mb-4">Status: <span id="season-status" class="font-medium">Loading...</span></p>
+                            <div id="season-actions" class="flex gap-4 justify-center">
+                                <a href="{{ route('registration') }}" class="btn btn-primary btn-lg">Register Now</a>
+                                <a href="{{ route('lookup') }}" class="btn btn-secondary btn-lg">Check Status</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        
+        <section class="py-12">
+            <div class="container">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="text-2xl font-semibold text-black">Season Standings</h3>
+                    </div>
+                    <div class="card-body">
+                        <div id="standings-loading" class="text-center py-8">
+                            <div class="spinner mx-auto mb-4"></div>
+                            <p class="text-gray-600">Loading standings...</p>
+                        </div>
+                        <div class="overflow-auto">
+                            <table id="standings-table" class="table hidden">
+                                <thead>
+                                    <tr>
+                                        <th>Rank</th>
+                                        <th>Gamer Tag</th>
+                                        <th>Points</th>
+                                        <th>Wins</th>
+                                        <th>Draws</th>
+                                        <th>Losses</th>
+                                        <th>Goals For</th>
+                                        <th>Goals Against</th>
+                                        <th>Goal Diff</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                     
+                                </tbody>
+                            </table>
+                        </div>
+                        <div id="no-standings" class="text-center py-8 hidden">
+                            <p class="text-gray-600">No standings available for the current season.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+         
+        <section class="py-12">
+            <div class="container">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="text-xl font-semibold text-black">Top Goal Scorers</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="scorers-loading" class="text-center py-4">
+                                <div class="spinner mx-auto mb-2"></div>
+                                <p class="text-sm text-gray-600">Loading...</p>
+                            </div>
+                               <ul id="top-scorers" class="hidden"></ul>
+                            <div id="no-scorers" class="text-center py-4 hidden">
+                                <p class="text-gray-600">No scoring data available.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                      
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="text-xl font-semibold text-black">Most Clean Sheets</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="cleansheets-loading" class="text-center py-4">
+                                <div class="spinner mx-auto mb-2"></div>
+                                <p class="text-sm text-gray-600">Loading...</p>
+                            </div>
+                               <ul id="clean-sheets" class="hidden"></ul>
+                            <div id="no-cleansheets" class="text-center py-4 hidden">
+                                <p class="text-gray-600">No clean sheet data available.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+         
+        <section class="py-16 bg-white">
+            <div class="container">
+                <div class="max-w-4xl mx-auto text-center">
+                    <h2 class="text-3xl font-bold text-black mb-6">About the EAFC League</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
+                        <div class="text-center">
+                            <div class="w-16 h-16 bg-green rounded-lg flex items-center justify-center mx-auto mb-4">
+                                <span class="text-white text-2xl font-bold">⚽</span>
+                            </div>
+                            <h3 class="text-lg font-semibold mb-2">Competitive Play</h3>
+                            <p class="text-gray-600">Join skilled players in intense EA Sports FC matches with official league standings.</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="w-16 h-16 bg-blue rounded-lg flex items-center justify-center mx-auto mb-4">
+                                <span class="text-white text-2xl font-bold">🏆</span>
+                            </div>
+                            <h3 class="text-lg font-semibold mb-2">Seasonal Tournaments</h3>
+                            <p class="text-gray-600">Participate in organized seasons with playoffs and championship matches.</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="w-16 h-16 bg-red rounded-lg flex items-center justify-center mx-auto mb-4">
+                                <span class="text-white text-2xl font-bold">📊</span>
+                            </div>
+                            <h3 class="text-lg font-semibold mb-2">Detailed Stats</h3>
+                            <p class="text-gray-600">Track your performance with comprehensive statistics and leaderboards.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+@endsection
+
+@push('scripts')
+<script src="{{ asset('js/homepage.js') }}"></script>
+@endpush

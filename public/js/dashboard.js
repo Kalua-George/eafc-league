@@ -1,28 +1,26 @@
 // Dashboard navigation and overview functionality
+
+let dashboardInitialized = false
+
 document.addEventListener("DOMContentLoaded", () => {
-  // Check authentication
   if (!window.EAFC || !window.EAFC.isLoggedIn || !window.EAFC.isLoggedIn()) {
-    window.location.href = "login.html"
+    window.location.href = window.EAFC_CONFIG.routes.login
     return
   }
 
-  // Initialize dashboard
   initDashboard()
-  loadOverviewStats()
-
-  // Set up navigation
-  setupNavigation()
-
-  // Set up logout
-  setupLogout()
-
-  // Display admin username
-  displayAdminInfo()
 })
 
 function initDashboard() {
-  // Show overview section by default
+  if (dashboardInitialized) return
+  dashboardInitialized = true
+
+  setupNavigation()
+  setupLogout()
+  displayAdminInfo()
+
   showSection("overview")
+  loadOverviewStats()
 }
 
 function setupNavigation() {
@@ -31,38 +29,26 @@ function setupNavigation() {
   navTabs.forEach((tab) => {
     tab.addEventListener("click", () => {
       const sectionId = tab.getAttribute("data-section")
+      if (!sectionId) return
       showSection(sectionId)
-
-      // Update active tab
-      navTabs.forEach((t) => t.classList.remove("active"))
-      tab.classList.add("active")
     })
   })
 }
 
 function showSection(sectionId) {
-  // Hide all sections
   const sections = document.querySelectorAll(".section")
-  sections.forEach((section) => {
-    section.classList.add("hidden")
-  })
+  sections.forEach((section) => section.classList.add("hidden"))
 
-  // Show selected section
   const targetSection = document.getElementById(sectionId)
   if (targetSection) {
     targetSection.classList.remove("hidden")
-
-    // Load section content if needed
     loadSectionContent(sectionId)
   }
 
-  // Update active tab
   const navTabs = document.querySelectorAll(".nav-tab")
   navTabs.forEach((tab) => {
-    tab.classList.remove("active")
-    if (tab.getAttribute("data-section") === sectionId) {
-      tab.classList.add("active")
-    }
+    const isActive = tab.getAttribute("data-section") === sectionId
+    tab.classList.toggle("active", isActive)
   })
 }
 
@@ -72,179 +58,169 @@ function loadSectionContent(sectionId) {
       if (window.loadPlayers) {
         window.loadPlayers()
       } else {
-        loadPlayersScript()
+        loadScriptOnce("js/players.js")
       }
       break
     case "seasons":
       if (window.loadSeasons) {
         window.loadSeasons()
       } else {
-        loadSeasonsScript()
+        loadScriptOnce("js/seasons.js")
       }
       break
     case "matches":
       if (window.loadMatches) {
         window.loadMatches()
       } else {
-        loadMatchesScript()
+        loadScriptOnce("js/matches.js")
       }
       break
     case "logs":
       if (window.loadLogs) {
         window.loadLogs()
       } else {
-        loadLogsScript()
+        loadScriptOnce("js/logs.js")
       }
+      break
+    default:
       break
   }
 }
 
-function loadPlayersScript() {
-  if (!document.querySelector('script[src="js/players.js"]')) {
-    const script = document.createElement("script")
-    script.src = "js/players.js"
-    document.head.appendChild(script)
-  }
-}
+function loadScriptOnce(src) {
+  if (document.querySelector(`script[src="${src}"]`)) return
 
-function loadSeasonsScript() {
-  if (!document.querySelector('script[src="js/seasons.js"]')) {
-    const script = document.createElement("script")
-    script.src = "js/seasons.js"
-    document.head.appendChild(script)
-  }
-}
-
-function loadMatchesScript() {
-  if (!document.querySelector('script[src="js/matches.js"]')) {
-    const script = document.createElement("script")
-    script.src = "js/matches.js"
-    document.head.appendChild(script)
-  }
-}
-
-function loadLogsScript() {
-  if (!document.querySelector('script[src="js/logs.js"]')) {
-    const script = document.createElement("script")
-    script.src = "js/logs.js"
-    document.head.appendChild(script)
-  }
+  const script = document.createElement("script")
+  script.src = src
+  document.head.appendChild(script)
 }
 
 async function loadOverviewStats() {
+  const container = document.getElementById("overviewContent")
+  if (!container) return
+
+  container.innerHTML = `
+    <div class="card text-center py-8 md:col-span-2">
+      <div class="spinner mx-auto mb-4"></div>
+      <p class="text-gray-600">Loading overview...</p>
+    </div>
+  `
+
   try {
-    // Load dashboard statistics
-    const [playersResponse, seasonsResponse, matchesResponse] = await Promise.all([
-      fetch("../api/players/get_players.php").catch(() => ({ json: () => ({ players: [] }) })),
-      fetch("../api/seasons.php?action=list").catch(() => ({ json: () => ({ seasons: [] }) })),
-      fetch("../api/matches.php?action=list").catch(() => ({ json: () => ({ matches: [] }) })),
+    const [playersRaw, seasonsRaw, matchesRaw] = await Promise.all([
+      window.EAFC.apiCall("/players"),
+      window.EAFC.apiCall("/seasons"),
+      window.EAFC.apiCall("/matches"),
     ])
 
-    const playersData = await playersResponse.json()
-    const seasonsData = await seasonsResponse.json()
-    const matchesData = await matchesResponse.json()
+    const players = Array.isArray(playersRaw) ? playersRaw : playersRaw.players || []
+    const matches = Array.isArray(matchesRaw) ? matchesRaw : matchesRaw.matches || []
 
-    // Update stats
-    const players = playersData.players || []
-    const seasons = seasonsData.seasons || []
-    const matches = matchesData.matches || []
+    let seasons = []
+    if (Array.isArray(seasonsRaw)) {
+      seasons = seasonsRaw
+    } else if (Array.isArray(seasonsRaw.seasons)) {
+      seasons = seasonsRaw.seasons
+    } else if (seasonsRaw.season) {
+      seasons = [seasonsRaw.season]
+    }
 
-    document.getElementById("totalPlayers").textContent = players.length
-    document.getElementById("pendingPlayers").textContent = players.filter((p) => p.status === "pending").length
-    document.getElementById("totalMatches").textContent = matches.length
-    document.getElementById("activeSeasons").textContent = seasons.filter((s) => s.status === "active").length
+    const pendingPlayers = players.filter((player) => player.status === "pending").length
+    const approvedPlayers = players.filter((player) => player.status === "approved").length
+    const activeSeasons = seasons.filter((season) => {
+      return season.status === "current" || season.status === "active"
+    }).length
+    const completedMatches = matches.filter((match) => {
+      return match.status === "completed" || (match.home_goals !== null && match.away_goals !== null)
+    }).length
+
+    container.innerHTML = `
+      <div class="card overview-card">
+        <div class="card-body">
+          <div class="flex items-center justify-between mb-3">
+            <span class="overview-label">Registered Players</span>
+            <span class="overview-icon">👥</span>
+          </div>
+          <div class="overview-value">${players.length}</div>
+          <p class="text-sm text-gray-600 mt-2">${approvedPlayers} approved and active</p>
+        </div>
+      </div>
+
+      <div class="card overview-card">
+        <div class="card-body">
+          <div class="flex items-center justify-between mb-3">
+            <span class="overview-label">Pending Approvals</span>
+            <span class="overview-icon">⏳</span>
+          </div>
+          <div class="overview-value">${pendingPlayers}</div>
+          <p class="text-sm text-gray-600 mt-2">Waiting for admin action</p>
+        </div>
+      </div>
+
+      <div class="card overview-card">
+        <div class="card-body">
+          <div class="flex items-center justify-between mb-3">
+            <span class="overview-label">Total Fixtures</span>
+            <span class="overview-icon">⚽</span>
+          </div>
+          <div class="overview-value">${matches.length}</div>
+          <p class="text-sm text-gray-600 mt-2">${completedMatches} completed</p>
+        </div>
+      </div>
+
+      <div class="card overview-card">
+        <div class="card-body">
+          <div class="flex items-center justify-between mb-3">
+            <span class="overview-label">Live Seasons</span>
+            <span class="overview-icon">📅</span>
+          </div>
+          <div class="overview-value">${activeSeasons}</div>
+          <p class="text-sm text-gray-600 mt-2">Based on current date range</p>
+        </div>
+      </div>
+    `
   } catch (error) {
     console.error("Failed to load overview stats:", error)
-    // Set default values on error
-    document.getElementById("totalPlayers").textContent = "-"
-    document.getElementById("pendingPlayers").textContent = "-"
-    document.getElementById("totalMatches").textContent = "-"
-    document.getElementById("activeSeasons").textContent = "-"
+    container.innerHTML = `
+      <div class="card text-center py-8">
+        <div class="text-red mb-3">⚠️</div>
+        <p class="text-gray-700 font-semibold mb-2">Unable to load overview</p>
+        <p class="text-sm text-gray-600 mb-4">${error.message || "Please try again."}</p>
+        <button class="btn btn-primary" onclick="loadOverviewStats()">Retry</button>
+      </div>
+    `
   }
 }
 
 function setupLogout() {
   const logoutBtn = document.getElementById("logoutBtn")
+  if (!logoutBtn) return
 
   logoutBtn.addEventListener("click", async () => {
-    if (confirm("Are you sure you want to logout?")) {
-      try {
-        // Call logout API
-        await fetch("/api/admin/logout.php", {
-          method: "POST",
-        })
-      } catch (error) {
-        console.error("Logout API call failed:", error)
-      } finally {
-        // Clear session and redirect
-        if (window.EAFC && window.EAFC.logout) {
-          window.EAFC.logout()
-        } else {
-          window.location.href = "login.html"
-        }
+    if (!confirm("Are you sure you want to logout?")) return
+
+    try {
+      await window.EAFC.apiCall("/admin/logout", { method: "POST" })
+    } catch (error) {
+      console.error("Logout API call failed:", error)
+    } finally {
+      if (window.EAFC && window.EAFC.logout) {
+        window.EAFC.logout()
+      } else {
+        window.location.href = window.EAFC_CONFIG.routes.login
       }
     }
   })
 }
 
 function displayAdminInfo() {
-  const username = window.EAFC && window.EAFC.getSession ? window.EAFC.getSession("admin_username") : "Admin"
-
+  const username = (window.EAFC_CONFIG && window.EAFC_CONFIG.admin && window.EAFC_CONFIG.admin.username) || "Admin"
   const usernameElement = document.getElementById("adminUsername")
+
   if (usernameElement && username) {
     usernameElement.textContent = username
   }
 }
 
-// Add CSS for navigation tabs
-const style = document.createElement("style")
-style.textContent = `
-    .nav-tab {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 0.25rem;
-        padding: 0.75rem 1rem;
-        border: none;
-        background: transparent;
-        color: var(--gray-600);
-        font-size: 0.875rem;
-        font-weight: 500;
-        border-radius: 0.5rem;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        min-width: 80px;
-        white-space: nowrap;
-    }
-    
-    .nav-tab:hover {
-        background-color: var(--gray-100);
-        color: var(--gray-700);
-    }
-    
-    .nav-tab.active {
-        background-color: var(--primary-green);
-        color: white;
-    }
-    
-    .nav-tab.active:hover {
-        background-color: #2a8f01;
-    }
-    
-    @media (max-width: 768px) {
-        .nav-tab {
-            min-width: 60px;
-            padding: 0.5rem 0.75rem;
-            font-size: 0.75rem;
-        }
-        
-        .nav-tab span:first-child {
-            font-size: 1rem;
-        }
-    }
-`
-document.head.appendChild(style)
-
-// Export functions for use by other scripts
 window.showSection = showSection
 window.loadOverviewStats = loadOverviewStats

@@ -11,7 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Check if already logged in
   if (window.EAFC && window.EAFC.isLoggedIn && window.EAFC.isLoggedIn()) {
-    window.location.href = "dashboard.html"
+    window.location.href = window.EAFC_CONFIG.routes.dashboard
     return
   }
 
@@ -50,15 +50,10 @@ document.addEventListener("DOMContentLoaded", () => {
     loginSpinner.classList.remove("hidden")
 
     try {
-      const response = await fetch("../api/admin/login.php", {
+      const result = await window.EAFC.apiCall("/admin/login", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify(loginData),
       })
-
-      const result = await response.json()
 
       if (result.success) {
         // Store session
@@ -74,7 +69,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Redirect after delay
         setTimeout(() => {
-          window.location.href = "dashboard.html"
+          window.location.href = window.EAFC_CONFIG.routes.dashboard
         }, 2000)
       } else {
         showAlert(result.error || "Invalid username or password", "error")
@@ -169,7 +164,7 @@ function resetSessionTimeout() {
           if (window.EAFC && window.EAFC.logout) {
             window.EAFC.logout()
           } else {
-            window.location.href = "login.html"
+            window.location.href = window.EAFC_CONFIG.routes.login
           }
         },
         5 * 60 * 1000,

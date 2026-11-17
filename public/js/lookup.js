@@ -31,15 +31,14 @@ document.addEventListener("DOMContentLoaded", () => {
     notFoundMessage.classList.add("hidden")
 
     try {
-      const response = await fetch(`../api/players/get_player.php?identifier=${encodeURIComponent(identifier)}`)
-      const result = await response.json()
+      const result = await EAFC.apiCall(`/players/search?identifier=${encodeURIComponent(identifier)}`)
 
-      if (result.error) {
+      if (!result.success || !result.player) {
         // Player not found
         notFoundMessage.classList.remove("hidden")
       } else {
         // Display player information
-        displayPlayerInfo(result)
+        displayPlayerInfo(result.player)
         playerInfo.classList.remove("hidden")
       }
     } catch (error) {

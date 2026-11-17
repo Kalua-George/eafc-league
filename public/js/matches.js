@@ -1,23 +1,19 @@
 // Match Management System for EAFC League Admin Dashboard
 
-// Initialize match management when loaded
 document.addEventListener("DOMContentLoaded", () => {
-  // Only initialize if we're on the dashboard page
   if (document.getElementById("matchesContent")) {
     initMatchManagement()
   }
 })
 
 function initMatchManagement() {
-  // Setup is handled dynamically when matches are loaded
+  // Setup is handled dynamically.
 }
 
-// Load matches
 async function loadMatches() {
   const container = document.getElementById("matchesContent")
   if (!container) return
 
-  // Show loading state
   container.innerHTML = `
     <div class="text-center py-8">
       <div class="spinner mx-auto mb-4"></div>
@@ -26,20 +22,21 @@ async function loadMatches() {
   `
 
   try {
-    const response = await fetch("../api/matches/matches.php")
-    const matches = await response.json()
+    const data = await window.EAFC.apiCall("/matches")
 
-    renderMatchesInterface(matches || [])
+    if (!data.success) {
+      throw new Error(data.error || "Failed to load matches")
+    }
+
+    renderMatchesInterface(data.matches || [])
   } catch (error) {
     console.error("Failed to load matches:", error)
     container.innerHTML = `
       <div class="card">
         <div class="card-body text-center">
-          <div class="text-red mb-4">
-            <span class="text-4xl">⚠️</span>
-          </div>
+          <div class="text-red mb-4"><span class="text-4xl">⚠️</span></div>
           <h3 class="text-lg font-semibold text-red mb-2">Failed to Load Matches</h3>
-          <p class="text-gray-600 mb-4">${error.message}</p>
+          <p class="text-gray-600 mb-4">${escapeHtml(error.message)}</p>
           <button onclick="loadMatches()" class="btn btn-primary">Try Again</button>
         </div>
       </div>
@@ -50,66 +47,33 @@ async function loadMatches() {
 function renderMatchesInterface(matches) {
   const container = document.getElementById("matchesContent")
 
-  const html = `
+  container.innerHTML = `
     <div class="flex flex-col gap-6">
-       Create Fixture Section 
       <div class="card">
         <div class="card-header">
-          <h3 class="text-lg font-semibold">Create Fixture</h3>
+          <h3 class="text-lg font-semibold">Create Fixtures</h3>
         </div>
         <div class="card-body">
           <form id="createFixtureForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="form-group">
               <label for="fixtureSeasonId" class="form-label">Season ID *</label>
-              <input 
-                type="number" 
-                id="fixtureSeasonId" 
-                name="season_id" 
-                class="form-input" 
-                required
-                placeholder="Enter season ID"
-                min="1"
-              >
+              <input type="number" id="fixtureSeasonId" name="season_id" class="form-input" required min="1" />
             </div>
             <div class="form-group">
               <label for="fixtureGamesPerPair" class="form-label">Games Per Pair *</label>
-              <input 
-                type="number" 
-                id="fixtureGamesPerPair" 
-                name="games_per_pair" 
-                class="form-input" 
-                required
-                value="1"
-                min="1"
-                max="10"
-              >
+              <input type="number" id="fixtureGamesPerPair" name="games_per_pair" class="form-input" required min="1" max="10" value="1" />
             </div>
             <div class="form-group">
               <label for="fixtureStartDate" class="form-label">Start Date *</label>
-              <input 
-                type="date" 
-                id="fixtureStartDate" 
-                name="start_date" 
-                class="form-input" 
-                required
-              >
+              <input type="date" id="fixtureStartDate" name="start_date" class="form-input" required />
             </div>
             <div class="form-group">
               <label for="fixtureGamesPerDay" class="form-label">Games Per Day *</label>
-              <input 
-                type="number" 
-                id="fixtureGamesPerDay" 
-                name="games_per_day" 
-                class="form-input" 
-                required
-                value="2"
-                min="1"
-                max="20"
-              >
+              <input type="number" id="fixtureGamesPerDay" name="games_per_day" class="form-input" required min="1" max="20" value="2" />
             </div>
             <div class="md:col-span-2">
               <button type="submit" class="btn btn-primary w-full" id="createFixtureBtn">
-                <span id="createFixtureText">Create Fixture</span>
+                <span id="createFixtureText">Create Fixtures</span>
                 <div id="createFixtureSpinner" class="spinner hidden"></div>
               </button>
             </div>
@@ -118,14 +82,11 @@ function renderMatchesInterface(matches) {
         </div>
       </div>
 
-       Matches List 
       <div class="card">
         <div class="card-header">
           <div class="flex items-center justify-between">
             <h3 class="text-lg font-semibold">Fixtures & Results (${matches.length})</h3>
-            <button onclick="loadMatches()" class="btn btn-outline btn-sm">
-              🔄 Refresh
-            </button>
+            <button onclick="loadMatches()" class="btn btn-outline btn-sm">🔄 Refresh</button>
           </div>
         </div>
         <div class="card-body">
@@ -135,12 +96,8 @@ function renderMatchesInterface(matches) {
     </div>
   `
 
-  container.innerHTML = html
-
-  // Set up form handler
   setupCreateFixtureForm()
 
-  // Set default start date to tomorrow
   const tomorrow = new Date()
   tomorrow.setDate(tomorrow.getDate() + 1)
   document.getElementById("fixtureStartDate").value = tomorrow.toISOString().split("T")[0]
@@ -149,11 +106,9 @@ function renderMatchesInterface(matches) {
 function renderEmptyMatches() {
   return `
     <div class="text-center py-8">
-      <div class="text-gray-400 mb-4">
-        <span class="text-4xl">⚽</span>
-      </div>
+      <div class="text-gray-400 mb-4"><span class="text-4xl">⚽</span></div>
       <h3 class="text-lg font-semibold text-gray-700 mb-2">No Fixtures Found</h3>
-      <p class="text-gray-600">Create a fixture above to schedule matches.</p>
+      <p class="text-gray-600">Create fixtures above to schedule matches.</p>
     </div>
   `
 }
@@ -167,20 +122,12 @@ function renderMatchesList(matches) {
         <div class="border border-gray-200 rounded-lg p-4">
           <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-3">
             <div class="flex-1">
-              <h4 class="font-semibold text-lg">
-                ${escapeHtml(match.home_team)} vs ${escapeHtml(match.away_team)}
-              </h4>
-              <p class="text-sm text-gray-600">
-                Match Date: ${formatDate(match.match_date)}
-                ${match.season_id ? ` | Season #${match.season_id}` : ""}
-              </p>
+              <h4 class="font-semibold text-lg">${escapeHtml(match.home_team)} vs ${escapeHtml(match.away_team)}</h4>
+              <p class="text-sm text-gray-600">Match Date: ${formatDate(match.match_date)}</p>
             </div>
-            <div class="mt-2 md:mt-0">
-              ${getMatchStatusBadge(match.status)}
-            </div>
+            <div class="mt-2 md:mt-0">${getMatchStatusBadge(match)}</div>
           </div>
-
-          ${match.status === "completed" ? renderCompletedMatch(match) : renderPendingMatch(match)}
+          ${match.result ? renderCompletedMatch(match) : renderPendingMatch(match)}
         </div>
       `,
         )
@@ -192,9 +139,7 @@ function renderMatchesList(matches) {
 function renderCompletedMatch(match) {
   return `
     <div class="bg-green bg-opacity-10 border border-green rounded-md p-4 text-center">
-      <div class="text-2xl font-bold text-green mb-2">
-        Final Result: ${match.home_goals} - ${match.away_goals}
-      </div>
+      <div class="text-2xl font-bold text-green mb-2">Final Result: ${escapeHtml(match.result)}</div>
       <p class="text-sm text-gray-600">Match completed</p>
     </div>
   `
@@ -203,74 +148,42 @@ function renderCompletedMatch(match) {
 function renderPendingMatch(match) {
   return `
     <div class="space-y-3">
-       Record Result Form 
       <div class="bg-gray-50 rounded-md p-4">
         <h5 class="font-medium mb-3">Record Result</h5>
         <form onsubmit="submitResult(event, ${match.id})" class="flex flex-col md:flex-row items-end gap-3">
           <div class="flex-1">
             <label class="form-label text-sm">${escapeHtml(match.home_team)} Goals</label>
-            <input 
-              type="number" 
-              name="home_goals" 
-              class="form-input" 
-              required
-              min="0"
-              max="50"
-              placeholder="0"
-            >
+            <input type="number" name="home_goals" class="form-input" required min="0" max="50" placeholder="0" />
           </div>
           <div class="text-2xl font-bold text-gray-400 self-center">-</div>
           <div class="flex-1">
             <label class="form-label text-sm">${escapeHtml(match.away_team)} Goals</label>
-            <input 
-              type="number" 
-              name="away_goals" 
-              class="form-input" 
-              required
-              min="0"
-              max="50"
-              placeholder="0"
-            >
+            <input type="number" name="away_goals" class="form-input" required min="0" max="50" placeholder="0" />
           </div>
-          <button type="submit" class="btn btn-primary">
-            Record Result
-          </button>
+          <button type="submit" class="btn btn-primary">Record Result</button>
         </form>
       </div>
 
-       Reschedule Form 
       <div class="bg-gray-50 rounded-md p-4">
         <h5 class="font-medium mb-3">Reschedule Match</h5>
         <form onsubmit="submitReschedule(event, ${match.id})" class="flex flex-col md:flex-row items-end gap-3">
           <div class="flex-1">
             <label class="form-label text-sm">New Date</label>
-            <input 
-              type="date" 
-              name="new_date" 
-              class="form-input" 
-              required
-            >
+            <input type="date" name="new_date" class="form-input" required />
           </div>
-          <button type="submit" class="btn btn-secondary">
-            Reschedule
-          </button>
+          <button type="submit" class="btn btn-secondary">Reschedule</button>
         </form>
       </div>
     </div>
   `
 }
 
-function getMatchStatusBadge(status) {
-  switch (status) {
-    case "completed":
-      return '<span class="badge badge-success">Completed</span>'
-    case "scheduled":
-      return '<span class="badge badge-warning">Scheduled</span>'
-    case "postponed":
-      return '<span class="badge badge-info">Postponed</span>'
-    default:
-      return '<span class="badge badge-info">Pending</span>'
+function getMatchStatusBadge(match) {
+  if (match.result) {
+    return '<span class="badge badge-success">Completed</span>'
   }
+
+  return '<span class="badge badge-warning">Scheduled</span>'
 }
 
 function setupCreateFixtureForm() {
@@ -285,128 +198,108 @@ function setupCreateFixtureForm() {
     const spinner = document.getElementById("createFixtureSpinner")
     const messageDiv = document.getElementById("createFixtureMessage")
 
-    // Clear previous messages
     messageDiv.innerHTML = ""
-
-    // Show loading
     btn.disabled = true
     btnText.textContent = "Creating..."
     spinner.classList.remove("hidden")
 
     try {
       const formData = new FormData(form)
+      const payload = {
+        season_id: Number(formData.get("season_id")),
+        games_per_pair: Number(formData.get("games_per_pair")),
+        start_date: String(formData.get("start_date") || ""),
+        games_per_day: Number(formData.get("games_per_day")),
+      }
 
-      const response = await fetch("../api/matches/create_fixture.php", {
+      const data = await window.EAFC.apiCall("/matches/fixtures", {
         method: "POST",
-        body: formData,
+        body: JSON.stringify(payload),
       })
 
-      const data = await response.json()
-
-      if (data.success) {
-        messageDiv.innerHTML = `
-          <div class="alert alert-success">
-            ${data.message || "Fixture created successfully"}
-          </div>
-        `
-        form.reset()
-
-        // Set default start date again
-        const tomorrow = new Date()
-        tomorrow.setDate(tomorrow.getDate() + 1)
-        document.getElementById("fixtureStartDate").value = tomorrow.toISOString().split("T")[0]
-
-        // Reload matches
-        setTimeout(() => {
-          loadMatches()
-        }, 1000)
-      } else {
-        throw new Error(data.error || "Failed to create fixture")
+      if (!data.success) {
+        throw new Error(data.error || "Failed to create fixtures")
       }
+
+      messageDiv.innerHTML = `<div class="alert alert-success">${escapeHtml(data.message || "Fixtures created successfully")}</div>`
+      form.reset()
+
+      const tomorrow = new Date()
+      tomorrow.setDate(tomorrow.getDate() + 1)
+      document.getElementById("fixtureStartDate").value = tomorrow.toISOString().split("T")[0]
+
+      setTimeout(() => {
+        loadMatches()
+      }, 700)
     } catch (error) {
-      console.error("Failed to create fixture:", error)
-      messageDiv.innerHTML = `
-        <div class="alert alert-error">
-          ${error.message}
-        </div>
-      `
+      console.error("Failed to create fixtures:", error)
+      messageDiv.innerHTML = `<div class="alert alert-error">${escapeHtml(error.message)}</div>`
     } finally {
-      // Reset button
       btn.disabled = false
-      btnText.textContent = "Create Fixture"
+      btnText.textContent = "Create Fixtures"
       spinner.classList.add("hidden")
     }
   })
 }
 
-// Submit match result
 async function submitResult(event, matchId) {
   event.preventDefault()
 
   const form = event.target
-  const formData = new FormData(form)
-  formData.append("match_id", matchId)
+  const homeGoals = form.home_goals.value
+  const awayGoals = form.away_goals.value
 
   try {
-    const response = await fetch("../api/matches/record_results.php", {
+    const data = await window.EAFC.apiCall("/matches/result", {
       method: "POST",
-      body: formData,
+      body: JSON.stringify({
+        match_id: matchId,
+        result: `${homeGoals}-${awayGoals}`,
+      }),
     })
 
-    const data = await response.json()
-
-    if (data.success) {
-      if (window.EAFC && window.EAFC.showAlert) {
-        window.EAFC.showAlert("Match result recorded successfully", "success")
-      }
-      loadMatches() // Refresh matches
-    } else {
+    if (!data.success) {
       throw new Error(data.error || "Failed to record result")
     }
+
+    window.EAFC.showAlert(data.message || "Match result recorded successfully", "success")
+    loadMatches()
   } catch (error) {
     console.error("Failed to record result:", error)
-    if (window.EAFC && window.EAFC.showAlert) {
-      window.EAFC.showAlert(error.message, "error")
-    }
+    window.EAFC.showAlert(error.message, "error")
   }
 }
 
-// Submit match reschedule
 async function submitReschedule(event, matchId) {
   event.preventDefault()
 
   const form = event.target
-  const formData = new FormData(form)
-  formData.append("match_id", matchId)
+  const newDate = form.new_date.value
 
   try {
-    const response = await fetch("../api/matches/reschedule.php", {
+    const data = await window.EAFC.apiCall("/matches/reschedule", {
       method: "POST",
-      body: formData,
+      body: JSON.stringify({
+        match_id: matchId,
+        new_date: newDate,
+      }),
     })
 
-    const data = await response.json()
-
-    if (data.success) {
-      if (window.EAFC && window.EAFC.showAlert) {
-        window.EAFC.showAlert("Match rescheduled successfully", "success")
-      }
-      loadMatches() // Refresh matches
-    } else {
+    if (!data.success) {
       throw new Error(data.error || "Failed to reschedule match")
     }
+
+    window.EAFC.showAlert(data.message || "Match rescheduled successfully", "success")
+    loadMatches()
   } catch (error) {
     console.error("Failed to reschedule match:", error)
-    if (window.EAFC && window.EAFC.showAlert) {
-      window.EAFC.showAlert(error.message, "error")
-    }
+    window.EAFC.showAlert(error.message, "error")
   }
 }
 
-// Utility functions
 function escapeHtml(text) {
   const div = document.createElement("div")
-  div.textContent = text
+  div.textContent = text == null ? "" : String(text)
   return div.innerHTML
 }
 
@@ -420,7 +313,6 @@ function formatDate(dateString) {
   })
 }
 
-// Export functions for global access
 window.loadMatches = loadMatches
 window.submitResult = submitResult
 window.submitReschedule = submitReschedule

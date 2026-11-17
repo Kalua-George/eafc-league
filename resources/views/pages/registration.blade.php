@@ -1,0 +1,101 @@
+@extends('layouts.app')
+
+@section('title', 'EAFC League - Player Registration')
+
+@section('content')
+<main class="min-h-screen bg-gray-50">
+         
+        <div id="alerts" class="container pt-4"></div>
+
+
+        <section class="py-16">
+            <div class="container">
+                <div class="max-w-md mx-auto">
+
+                    <div class="text-center mb-8">
+                        <h1 class="text-3xl font-bold text-black mb-4">Player Registration</h1>
+                        <p class="text-gray-600">Register to participate in the current EAFC League season</p>
+                    </div>
+
+            
+                    <div class="card">
+                        <div class="card-body">
+                            <form id="registrationForm">
+                                <div class="form-group">
+                                    <label for="gamer_tag" class="form-label">Gamer Tag *</label>
+                                    <input 
+                                        type="text" 
+                                        id="gamer_tag" 
+                                        name="gamer_tag" 
+                                        class="form-input" 
+                                        required
+                                        placeholder="Enter your gamer tag"
+                                        maxlength="50"
+                                    >
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="phone" class="form-label">Phone Number *</label>
+                                    <input 
+                                        type="tel" 
+                                        id="phone" 
+                                        name="phone" 
+                                        class="form-input" 
+                                        required
+                                        placeholder="Enter your phone number"
+                                        maxlength="20"
+                                    >
+                                </div>
+
+                                <div class="form-group mb-6">
+                                    <div class="bg-gray-50 p-4 rounded-md">
+                                        <h3 class="font-semibold text-sm text-gray-700 mb-2">Registration Process:</h3>
+                                        <ul class="text-sm text-gray-600 space-y-1">
+                                            <li>• Submit your registration form</li>
+                                            <li>• Admin will review your application</li>
+                                            <li>• You'll be notified of approval status</li>
+                                            <li>• Once approved, you can participate in matches</li>
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                <button 
+                                    type="submit" 
+                                    id="submitBtn" 
+                                    class="btn btn-primary w-full"
+                                >
+                                    <span id="submitText">Register Now</span>
+                                    <div id="submitSpinner" class="spinner hidden"></div>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+
+                    <div id="successMessage" class="card mt-6 hidden">
+                        <div class="card-body text-center">
+                            <div class="w-16 h-16 bg-green rounded-full flex items-center justify-center mx-auto mb-4">
+                                <span class="text-white text-2xl">✓</span>
+                            </div>
+                            <h3 class="text-lg font-semibold text-green mb-2">Registration Submitted!</h3>
+                            <p class="text-gray-600 mb-4">Your registration has been submitted successfully. Please wait for admin approval.</p>
+                            <div class="flex gap-3 justify-center">
+                                <a href="{{ route('lookup') }}" class="btn btn-secondary">Check Status</a>
+                                <a href="{{ route('home') }}" class="btn btn-outline">Back to Home</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-8">
+                        <p class="text-gray-600 mb-4">Already registered?</p>
+                        <a href="{{ route('lookup') }}" class="btn btn-outline">Check Your Status</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+@endsection
+
+@push('scripts')
+<script src="{{ asset('js/registration.js') }}"></script>
+@endpush

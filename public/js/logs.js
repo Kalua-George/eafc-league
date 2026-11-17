@@ -28,13 +28,10 @@ async function loadLogs(page = 1) {
   `
 
   try {
-    const response = await fetch(`../api/systemlogs/getlogs.php?page=${page}&limit=${limit}`)
-
-    if (!response.ok) {
-      throw new Error("Failed to load logs")
+    const data = await window.EAFC.apiCall(`/systemlogs?page=${page}&limit=${limit}`)
+    if (!data.success) {
+      throw new Error(data.error || "Failed to load logs")
     }
-
-    const data = await response.json()
     const logs = data.logs || []
 
     if (logs.length === 0 && page === 1) {

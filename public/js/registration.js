@@ -48,7 +48,7 @@ document.addEventListener("DOMContentLoaded", () => {
     submitSpinner.classList.remove("hidden")
 
     try {
-      const response = await EAFC.apiCall("/api/players/add_player.php", {
+      const response = await EAFC.apiCall("/players", {
         method: "POST",
         body: JSON.stringify({
           gamer_tag: formData.gamer_tag.trim(),

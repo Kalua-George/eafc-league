@@ -1,0 +1,96 @@
+@extends('layouts.app')
+
+@section('title', 'EAFC League - Check Player Status')
+
+@section('content')
+<main class="min-h-screen bg-gray-50">
+        <div id="alerts" class="container pt-4"></div>
+
+
+        <section class="py-16">
+            <div class="container">
+                <div class="max-w-2xl mx-auto">
+
+                    <div class="text-center mb-8">
+                        <h1 class="text-3xl font-bold text-black mb-4">Check Your Player Status</h1>
+                        <p class="text-gray-600">Enter your Gamer Tag or Phone Number to see your registration status
+                            and stats</p>
+                    </div>
+
+
+                    <div class="card mb-6">
+                        <div class="card-body">
+                            <form id="lookupForm">
+                                <div class="form-group">
+                                    <label for="identifier" class="form-label">Gamer Tag or Phone Number</label>
+                                    <input type="text" id="identifier" name="identifier" class="form-input" required
+                                        placeholder="Enter your gamer tag or phone number">
+                                </div>
+
+                                <button type="submit" id="lookupBtn" class="btn btn-primary w-full">
+                                    <span id="lookupText">Check Status</span>
+                                    <div id="lookupSpinner" class="spinner hidden"></div>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+
+                    <div id="playerInfo" class="hidden">
+
+                        <div class="card mb-6">
+                            <div class="card-header">
+                                <h2 class="text-xl font-semibold">Player Information</h2>
+                            </div>
+                            <div class="card-body">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="text-sm font-medium text-gray-600">Gamer Tag</label>
+                                        <p id="gamerTag" class="font-semibold text-lg"></p>
+                                    </div>
+                                    <div>
+                                        <label class="text-sm font-medium text-gray-600">Phone Number</label>
+                                        <p id="phone" class="font-semibold text-lg"></p>
+                                    </div>
+                                </div>
+
+                                <div class="mt-4">
+                                    <label class="text-sm font-medium text-gray-600">Registration Status</label>
+                                    <div id="statusContainer" class="mt-1">
+                                        <span id="status" class="badge"></span>
+                                    </div>
+                                </div>
+
+                                <div id="statusMessage" class="mt-4 p-4 rounded-md"></div>
+                            </div>
+                        </div>
+
+                    </div>
+
+
+                    <div id="notFoundMessage" class="card hidden">
+                        <div class="card-body text-center">
+                            <div
+                                class="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <span class="text-gray-500 text-2xl">?</span>
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-700 mb-2">Player Not Found</h3>
+                            <p class="text-gray-600 mb-4">No player found with that gamer tag or phone number.</p>
+                            <a href="{{ route('registration') }}" class="btn btn-primary">Register Now</a>
+                        </div>
+                    </div>
+
+
+                    <div class="text-center mt-8">
+                        <p class="text-gray-600 mb-4">Need to register?</p>
+                        <a href="{{ route('registration') }}" class="btn btn-outline">Register as Player</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+@endsection
+
+@push('scripts')
+<script src="{{ asset('js/lookup.js') }}"></script>
+@endpush
